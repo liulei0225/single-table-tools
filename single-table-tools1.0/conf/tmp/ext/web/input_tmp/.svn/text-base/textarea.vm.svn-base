@@ -1,0 +1,2 @@
+<html:textarea property="${column.property}" style="width:50%"/>
+#valid($column, ${column.property})

@@ -1,0 +1,115 @@
+/**
+${head}
+**/
+package ${pkg}.service;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import ${Config.project.pkg}.bo.${bo};
+import com.jade.platform.tech.tool.util.StringMap;
+import com.jade.platform.tech.core.exception.ServiceException;
+import com.jade.platform.tech.core.web.TableTagBean;
+import com.jade.platform.tech.core.web.UserContext;
+import com.jade.platform.tech.core.dao.DaoUtil;
+import com.jade.platform.tech.tool.util.DateUtil;
+import com.jade.platform.tech.tool.util.ObjectUtil;
+
+import org.springframework.beans.BeanUtils;
+
+public class ${bo}Service {
+	public static void create(${bo} ${boLF}) throws ServiceException {
+#foreach($column in $allColumns)
+#if($column.geneType == 1)
+#if($column.typeClass == "java.util.Date")
+        ${boLF}.set${Util.upperFirst(${column.property})}(new Date());
+#elseif($column.typeClass == "java.lang.String")
+        ${boLF}.set${Util.upperFirst(${column.property})}(UserContext.getCurUid());
+#else
+        //TODO ${boLF}.set${Util.upperFirst(${column.property})}();
+#end
+#end
+#end
+        ${boLF}.save();
+	}
+
+#if($ids.size() == 1)
+	public static ${bo} get(${ids.get(0).typeClass} ${boLF}Id) throws ServiceException {
+#else
+	public static ${bo} get(${bo} ${boLF}Id) throws ServiceException {
+#end
+        return DaoUtil.get(${bo}.class, ${boLF}Id);
+	}
+    
+	public static void update(${bo} ${boLF}) throws ServiceException {
+#if($ids.size() == 1)
+        ${bo} orig = get(${boLF}.get${Util.upperFirst(${ids.get(0).property})}());
+#else
+        ${bo} orig = get(${boLF});
+#end
+        BeanUtils.copyProperties(${boLF}, orig, new String[]{#foreach($column in $allColumns)#if($column.geneType != 0)#if($velocityCount>1), #end"${column.property}"#end#end});
+#foreach($column in $allColumns)
+#if($column.geneType == 2)
+#if($column.typeClass == "java.util.Date")
+        orig.set${Util.upperFirst(${column.property})}(new Date());
+#elseif($column.typeClass == "java.lang.String")
+        orig.set${Util.upperFirst(${column.property})}(UserContext.getCurUid());
+#else
+        //TODO ${boLF}.set${Util.upperFirst(${column.property})}();
+#end
+#end
+#end
+        orig.update();
+	}
+    
+#if($ids.size() == 1)
+	public static void delete(${ids.get(0).typeClass} ${boLF}Id) throws ServiceException {
+#else
+	public static void delete(${bo} ${boLF}Id) throws ServiceException {
+#end
+        ${bo} ${boLF} = get(${boLF}Id);
+        if (${boLF} != null) {
+            ${boLF}.delete();
+        }
+	}
+    
+	public static List<${bo}> find(TableTagBean ttb) throws ServiceException {
+        StringBuilder hql = new StringBuilder();
+        HashMap<String, Object> hqlParams = new HashMap<String, Object>();
+        buildHQL(ttb.getCondition(), hql, hqlParams);
+        String order = ttb.getOrderBy();
+        if (order != null) {
+            if (ttb.getAsc()) {
+                hql.append(" order by " + order + " asc");
+            } else {
+                hql.append(" order by " + order + " desc");
+            }
+        }
+        List<${bo}> list = DaoUtil.listByCondition(hql.toString(), hqlParams, ttb.getPage() * ttb.getPageSize(), ttb.getPageSize());
+        ttb.setList(list);
+        ttb.setTotal(DaoUtil.countByCondition("select count(*) "+hql, hqlParams));
+        return list;
+	}
+
+    private static void buildHQL(StringMap params, StringBuilder hql, HashMap<String, Object> hqlParams) throws ServiceException {
+        hql.append("from ${bo} where 1=1");
+#foreach($column in $query)
+#parse("${tmpDir}src/cond_tmp/${column.inputType}.vm")
+#end
+   }
+#*
+/*7.30号测试*/
+    private static List<${bo}DTO> findWithSql(TableTagBean ttb) throws ServiceException {
+        String sql = "select #foreach( $column in $allColumns )$column.columnName #if($velocityCount != $allColumns.size()), #end#end from ${table.tableName}";
+        List<Object[]> list = new ArrayList<Object[]>;//这里是查询结果
+        ${bo}DTO ${boLF}DTO;
+        for(Object[] obs : list){
+            ${boLF}DTO = new ${bo}DTO();
+#foreach( $column in $allColumns )
+            ${boLF}DTO.set${Util.upperFirst($column.property)}(BeanUtils.convert(objs[$velocityCount - 1]));
+#end
+        }
+    }
+*#
+}

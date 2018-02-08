@@ -1,0 +1,108 @@
+// 新增 ${bo}
+function create${bo}() {
+    var actionURL = "${boLF}GoCreate.do?method=goCreate";
+    var config = {title: "新增", dialogWidth: 650, dialogHeight: 450};
+    var win = new ModalDialogWindow();
+    win.showModalDialog(actionURL, '', config);
+    win.win.on('beforeclose', function () {
+        this.grid.store.reload();
+    }, this);
+}
+
+// 修改${bo}
+function update${bo}() {
+    var record = this.grid.getSelectionModel().getSelected();
+#foreach($id in $ids)
+    var ${id.property} = record.data.${id.property};
+#end
+    var actionURL = "${boLF}GoUpdate.do?method=goUpdate"#foreach($id in $ids) + "&${id.property}=" + ${id.property}#end;
+    var config = {title: "修改", dialogWidth: 650, dialogHeight: 450};
+    var win = new ModalDialogWindow();
+    win.showModalDialog(actionURL, '', config);
+    win.win.on('beforeclose', function () {
+        this.grid.store.reload();
+    }, this);
+}
+
+// 查看${bo}
+function view${bo}() {
+    var record = this.grid.getSelectionModel().getSelected();
+#foreach($id in $ids)
+    var ${id.property} = record.data.${id.property};
+#end
+    var actionURL = "${boLF}Show.do?method=show"#foreach($id in $ids) + "&${id.property}=" + ${id.property}#end;
+    var config = {title: "查看", dialogWidth: 650, dialogHeight: 450};
+    var win = new ModalDialogWindow();
+    win.showModalDialog(actionURL, '', config);
+    win.win.on('beforeclose', function () {
+        this.grid.store.reload();
+    }, this);
+}
+// 删除${bo}
+function delete${bo}()
+{
+
+    var records = this.grid.getSelectionModel().getSelections();
+    var cannotDoRecord = "";
+    var ${boLF}Ids = new Array();
+    if (records.length == 0) {
+        Ext.MessageBox.alert("提示信息", "请至少选择一条记录!");
+    } else {
+        var num = 1;
+        var message = "<tr ><td>序号&nbsp;</td>";
+#foreach($column in $listShow)
+#if($velocityCount<3)
+        message+="<td>${column.displayName}&nbsp;&nbsp;&nbsp;</td>";
+#end
+#end
+        message+="</tr>";
+
+        for (var i = 0; i < records.length; i++) {
+            ${boLF}Ids[${boLF}Ids.length] = ""#foreach($id in $ids)+records[i].data.${id.property}#if($velocityCount != ${ids.size()})+"_"#end#end;
+            message = message + "<tr><td>" + num + "&nbsp;</td>";
+#foreach($column in $listShow)
+#if($velocityCount<3)
+            message+="<td>"+records[i].data.${column.property}+"&nbsp;&nbsp;&nbsp;</td>";
+#end
+#end
+            message+="</tr>";
+            num++;
+        }
+        Ext.Msg.confirm("提示信息", "<table><caption>请确认是否删除以下:</caption>" + message + "</table>", function (btn) {
+            if (btn == 'yes') {
+                Ext.Ajax.timeout = 600000; // timeOut时间设置为600秒(10分钟)。
+                Ext.Ajax.request(
+                        {
+                            url: '${boLF}Delete.do?method=deletes&${boLF}s=' + ${boLF}Ids,
+                            method: 'post',
+                            success: onFinally,
+                            failure: function () {
+                                Ext.MessageBox.alert("提示信息", "网络连接异常.");
+                            }
+                        });
+                // 显示进度条.
+                showProgressText();
+            }
+        });
+    }
+}
+
+//取消回调
+function cancelReturn() {
+    parent.win.win.close();
+}
+function onFinally(o) {
+    var response = function (json) {
+        try {
+            return eval('(' + json + ')');
+        } catch (e) {
+        }
+        return null;
+    }(o.responseText);
+    if (response && response.success && response.success == 'ok') {
+        Ext.MessageBox.alert('消息', response.msg);
+        viewport.centerPanel.form.goQuery();
+    } else if (response && response.success && response.success == 'fail') {
+        Ext.MessageBox.alert('消息', response.msg);
+    }
+}

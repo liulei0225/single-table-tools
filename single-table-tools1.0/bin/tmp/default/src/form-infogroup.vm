@@ -1,0 +1,68 @@
+/**
+${head}
+**/
+package ${pkg}.web.form;
+
+import jade.workflow.utils.ObjectUtil;
+
+import org.apache.commons.lang.StringUtils;
+import org.apache.struts.validator.ValidatorForm;
+
+import com.jade.platform.core.util.DateUtil;
+
+public class ${bo}Form extends ValidatorForm {
+	private static final long serialVersionUID = 110119120L;
+
+#foreach( $column in $allColumns )
+#if(${column.geneType} == 0 || ${column.geneType} == 3)
+	private ${column.typeClass} $column.property;#*$column.typeClass*#
+#if(${column.typeClass} == "java.util.Date" || ${column.inputType} == "dicTree")
+    private String ${column.property}Str;
+#end
+#end
+#end
+
+	public ${bo}Form() {}
+
+#foreach( $column in $allColumns )
+#if(${column.geneType} == 0 || ${column.geneType} == 3)
+    public void set${Util.upperFirst($column.property)}(${column.typeClass} $column.property){#*$column.typeClass*#
+		this.$column.property = $column.property;
+#if($column.typeClass == "java.util.Date")
+		if(null != ${column.property}){
+			this.${column.property}Str = DateUtil.format(${column.property}, "yyyy-MM");
+         }
+#end
+	}
+
+	public ${column.typeClass} get${Util.upperFirst($column.property)}(){#*$column.typeClass*#
+		return this.$column.property;
+	}
+#if($column.typeClass == "java.util.Date" || ${column.inputType} == "dicTree")
+    public void set${Util.upperFirst($column.property)}Str(String ${column.property}Str){#*$column.typeClass*#
+        this.${column.property}Str = ${column.property}Str;
+#if($column.typeClass == "java.util.Date")
+        if(StringUtils.isNotEmpty(${column.property}Str)){
+               this.${column.property} = DateUtil.parse(${column.property}Str, "yyyy-MM");
+        }
+#end
+    }
+
+    public String get${Util.upperFirst($column.property)}Str(){#*$column.typeClass*#
+        return this.${column.property}Str;
+    }
+#end
+#end
+#end
+	public void resetForm() {
+#foreach( $column in $allColumns )
+#if(${column.geneType} == 0 || ${column.geneType} == 3)
+		this.$column.property = null;
+#if($column.typeClass == "java.util.Date" || ${column.inputType} == "dicTree")
+        this.${column.property}Str = null;
+#end
+#end
+#end
+	}
+
+}

@@ -1,0 +1,2 @@
+<html:text property="${column.property}" style="width:50%" onkeyup="this.value=this.value.replace(/[^0-9^\-^\.]/g,'')" #*onafterpaste="this.value=this.value.replace(/[^0-9^\-^\.]/g,'')"*#/>
+#valid($column, ${column.property})

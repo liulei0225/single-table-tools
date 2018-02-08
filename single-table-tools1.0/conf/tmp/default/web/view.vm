@@ -1,0 +1,75 @@
+#set($title=${table.displayName}+' 显示')
+#parse("${tmpDir}web/jsp_head.vm")
+
+<script>
+    function do_update(){
+        ${boLF}Form.submit();
+    }
+
+    function do_cancel(){
+        var cancelBt = document.getElementById("cancel_bt");
+        cancelBt.name = "org.apache.struts.taglib.html.CANCEL";
+        cancelBt.value="true";
+        ${boLF}Form.submit();
+    }
+
+	function do_delete(){
+		if(confirm('<bean:message key="delete.confirm"/>')){
+			location.href='${boLF}Delete.do?method=delete#foreach($id in $ids)&${id.property}=<bean:write name="${boLF}Form" property="${id.property}"/>#end';
+		}
+	}
+</script>
+</head>
+  
+<body>
+    <logic:messagesPresent>
+		<bean:message key="errors.header" />
+		<ul>
+			<html:messages id="error">
+				<li>
+					<bean:write name="error" />
+				</li>
+			</html:messages>
+		</ul>
+	</logic:messagesPresent>
+   <html:form action="${boLF}GoUpdate.do?method=goUpdate" method="post">
+    <table width="100%" class="list" border="0" cellspacing="0" cellpadding="3">
+        <tr>
+          <th colspan="#set($cs=${table.columnSize}*2)${cs}">
+              ${table.displayName}查看
+#foreach($id in $ids)
+            <html:hidden name="${boLF}Form" property="${id.property}"/>
+#end
+          </th>
+        </tr>
+#set($labelWidth=100/${table.columnSize}/3)
+#set($inputWidth=100/${table.columnSize}*2/3)
+#macro(inputCol $column)
+          <td class="formLabel" style="width: ${labelWidth}%;">${column.displayName}</td>
+          <td#if(${column.colSpan} > 1)#set($cosp = ${column.colSpan}*2+(-1)) colspan="${cosp}"#else style="width: ${inputWidth}%;"#end>
+              #set($beanName="${boLF}Form")#parse("${tmpDir}web/view_tmp/${column.inputType}.vm")&nbsp;
+          </td>
+#end
+#table($table)
+        <tr>
+            <th colspan="#set($cs=${table.columnSize}*2)${cs}">
+                <img src="images/buttonImages/modificationSe.gif" onClick="do_update()"/>&nbsp;&nbsp;
+                <input type="hidden" name="" id="cancel_bt">
+                <img src="images/buttonImages/delete.gif" onClick="do_delete()"/>&nbsp;&nbsp;
+                <img src="images/buttonImages/backSe.gif" onClick="do_cancel();"/>
+            </th>
+        </tr>
+   </table>
+          #*<p>
+		    <html:submit>
+	    	   <bean:message key="button.modify"/>
+	        </html:submit>&nbsp;&nbsp;
+			<html:cancel>
+			    <bean:message key="button.return" />
+			</html:cancel>&nbsp;&nbsp;
+        	<html:button property="delete" onclick="do_delete()" >
+			    <bean:message key="button.delete"/>
+		    </html:button>
+		  </p>*#
+  </html:form>
+#parse("${tmpDir}web/jsp_foot.vm")

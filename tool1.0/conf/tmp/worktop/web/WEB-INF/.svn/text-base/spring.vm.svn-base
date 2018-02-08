@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+${head}
+-->
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+#foreach($itemNodeCode in $itemNodeCodes)
+#set($temp=$velocityCount)
+#foreach($button in $buttons)
+#if($velocityCount==$temp)
+#foreach($column in $button.split(","))
+#if($column=="a")  
+#foreach($menuCode in $menuCodes)
+#foreach($mCode in $menuCode.split(","))
+	<!-- 待办事项实现类 -->
+	<bean name="taskItem${mCode}" class="${pkg}.service.flow.${table.boName}TaskItemServiceImpl"/> 
+#end
+#end
+	<!-- 创建业务 -->
+	<bean name="createTask${itemCode}${itemNodeCode}" class="${pkg}.service.flow.${table.boName}TaskCreateServiceImpl" parent="taskCreateAbstractService" singleton="false" />     
+#end
+#if($column=="b") 
+	<!-- 上报 -->
+	<bean name="reportTask${itemCode}${itemNodeCode}" class="${pkg}.service.flow.${table.boName}NextTaskServiceImpl" parent="taskNextAbstractService" singleton="false" />
+#end
+#if($column=="c") 
+	<!--业务事项删除-->
+	<bean name="deleteTask${itemCode}${itemNodeCode}" class="${pkg}.service.flow.${table.boName}TaskDeleteServiceImpl" parent="taskDeleteAbstractService" singleton="false" />
+#end
+#if($column=="d") 
+	<!-- 终止 -->
+	<bean name="stopTask${itemCode}${itemNodeCode}" class="${pkg}.service.flow.${table.boName}StopTaskServiceImpl" parent="taskStopAbstractService" singleton="false" />
+#end
+#if($column=="e") 
+	<!-- 业务事项撤回 -->
+	<bean name="revokeTask${itemCode}${itemNodeCode}" class="${pkg}.service.flow.${table.boName}RevokeTaskServiceImpl" parent="taskRevokeAbstractService" singleton="false" />		
+#end
+#if($column=="f") 
+	<!-- 同意 -->
+	<bean name="recheckTask${itemCode}${itemNodeCode}" class="${pkg}.service.flow.${table.boName}NextTaskServiceImpl" parent="taskNextAbstractService" singleton="false" />
+#end
+#if($column=="g") 
+	<!--业务事项退回 -->
+	<bean name="backTask${itemCode}${itemNodeCode}" class="${pkg}.service.flow.${table.boName}NextTaskServiceImpl" parent="taskNextAbstractService" singleton="false" />
+#end
+#if($column=="h") 
+	<!-- 不同意 -->
+	<bean name="stopTask${itemCode}${itemNodeCode}" class="${pkg}.service.flow.${table.boName}StopTaskServiceImpl" parent="taskStopAbstractService" singleton="false" />
+#end
+#end
+#end
+#end
+#end
+</beans>

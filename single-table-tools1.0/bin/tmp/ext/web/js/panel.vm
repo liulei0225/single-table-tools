@@ -1,0 +1,35 @@
+var ${bo}Panel = Ext.extend(Ext.Panel, {
+    region: 'center',
+    layout: 'border',
+    border: false,
+    initComponent: function () {
+        ${bo}Panel.superclass.initComponent.call(this);
+        this.grid = new ${bo}Grid();
+        this.form = new ${bo}Form({
+            view: this,
+            formUrl: this.formUrl
+        });
+        this.add(this.grid);
+        this.add(this.form);
+    },
+
+    addGridTbar: function () {
+        this.grid.getTopToolbar().add({
+            text: '新增',
+            iconCls: 'add',
+            handler: create${bo}.createDelegate(this)
+        }, '-', {
+            text: '修改',
+            iconCls: 'mod',
+            handler: this.grid.doOperate.createDelegate(this.grid, [true, update${bo}.createDelegate(this)])
+        }, '-', {
+            text: '查看',
+            iconCls: 'view',
+            handler: this.grid.doOperate.createDelegate(this.grid, [true, view${bo}.createDelegate(this)])
+        }, '-', {
+            text: '删除',
+            iconCls: 'del',
+            handler: delete${bo}.createDelegate(this)
+        });
+    }
+});

@@ -1,0 +1,26 @@
+
+<!--
+ * @path        ${path}
+ * @author      Jade CRUD Framework
+${head}
+ * @version     2.0
+-->
+<%@ page contentType="text/html; charset=UTF-8" language="java"%>
+<%@ include file="/include/jsp_headers.jsp"%>
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>${title}</title>
+    <%@ include file="/include/js_css_base_include.jsp"%>
+</head>
+<body>
+<div class="sitemap" style="position:fixed;top:0;">
+    <ul style="float: left">
+    	<li>当前位置：</li>
+        <li><a href="#">*****<span class="spanColor">&gt;</span></a></li>
+        <li><a href="#">*****<span class="spanColor">&gt;</span></a></li>
+        <li><a href="#">*****</a></li>
+    </ul>
+    <div class="go_back"><span style="font-family: sans-serif;"> << </span>返回</div>
+    <div style="clear: both"></div>

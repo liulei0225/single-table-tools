@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+${head}
+-->
+<!DOCTYPE struts-config PUBLIC
+          "-//Apache Software Foundation//DTD Struts Configuration 1.1//EN"
+          "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">
+
+<struts-config>
+
+	<form-beans>
+#foreach($table in $tables)
+		<form-bean name="${table.boName}Form" type="${Config.project.pkg}.web.form.${table.boName}Form" />
+#end
+	</form-beans>
+	<action-mappings>
+#foreach($table in $tables)
+		<!-- ++++++++${table.displayName}相关操作+++++++++ -->
+		<action path="/show${table.boName}" 
+			type="${Config.project.pkg}.web.action.${table.boName}Action" 
+			parameter="method"
+			name="${boLF}Form" 
+			scope="request" 
+			validate="false">
+			<description>${table.displayName}详细信息查看</description>
+			<forward name="success" path="/hrinfo/view/view_ver_${Util.lowerAll(${table.boName})}_show.jsp"/>
+		</action>
+
+        <action path="/list${table.boName}"
+				scope="request"
+				name="${boLF}Form"
+				type="${Config.project.pkg}.web.action.${table.boName}Action"
+				validate="false"
+				parameter="method">
+			<description>展示${table.displayName}信息到主页面</description>
+			<forward name="success" path="/hrinfo/view/list_${Util.lowerAll(${table.boName})}_show.jsp"/>
+		</action>
+	
+		<action path="/goToUpdate${table.boName}Page"
+				scope="request"
+				name="${boLF}Form"
+				type="${Config.project.pkg}.web.action.${table.boName}Action"
+				validate="false"
+				parameter="method">
+			<description>跳转到${table.displayName}信息更新页面</description>
+			<forward name="success" path="/hrinfo/ver/unit/comm/${Util.lowerAll(${table.boName})}/view/verpb_${Util.lowerAll(${table.boName})}_update.jsp"/>
+		 </action>
+		 
+		 <action path="/update${table.boName}"
+				scope="request"
+				name="${boLF}Form"
+				type="${Config.project.pkg}.web.action.${table.boName}Action"
+				validate="false"
+				parameter="method">
+			<description>更新${table.displayName}信息</description>
+		 </action>
+		 
+		 <action path="/goToCreate${table.boName}Page"
+				scope="request"
+				type="${Config.project.pkg}.web.action.${table.boName}Action"
+				validate="false"
+				parameter="method">
+			<description>跳转到${table.displayName}信息新增页面</description>
+			<forward name="success" path="/hrinfo/ver/unit/comm/${Util.lowerAll(${table.boName})}/view/verpb_${Util.lowerAll(${table.boName})}_create.jsp"/>
+		  </action>
+		  
+		 <action path="/create${table.boName}"
+				scope="request"
+				name="${boLF}Form"
+				type="${Config.project.pkg}.web.action.${table.boName}Action"
+				validate="false"
+				parameter="method">
+			<description>新增${table.displayName}信息</description>
+		  </action>		  
+		  
+		  <action path="/delete${table.boName}"
+				  scope="request"
+			      type="${Config.project.pkg}.web.action.${table.boName}Action"
+				  validate="false"
+				  parameter="method">
+		   		<description>删除${table.displayName}信息</description>
+		   </action>
+		
+		<!-- +++++++++++++++++++++++++++++++++++++++++++++++ -->
+		
+#end
+		
+	</action-mappings>
+
+</struts-config>		

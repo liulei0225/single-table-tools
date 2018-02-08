@@ -1,0 +1,9 @@
+        String ${column.property} = params.getAsStringEmptyNull("${column.property}");
+        if (${column.property} != null){
+        	hql.append(" and ${column.property} = :${column.property}");
+            try{
+            	hqlParams.put("${column.property}", ObjectUtil.getValue(${column.property}, ${column.typeClass}.class));
+        	  } catch (jade.workflow.exception.ServiceException e) {
+			e.printStackTrace();
+			}
+        }

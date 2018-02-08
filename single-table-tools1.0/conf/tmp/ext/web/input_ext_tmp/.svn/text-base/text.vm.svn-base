@@ -1,0 +1,13 @@
+                {
+                    xtype: 'textfield',
+                    id: '${column.property}_ID',
+                    name: '${column.property}',
+                    fieldLabel: '${column.displayName}',
+    #if(!$isQuery && !$column.nullAble)
+                    allowBlank: true,
+    #end
+    #if(!$isQuery)
+                    maxLength: ${column.columnSize},
+    #end
+                    anchor: '98%'
+                }

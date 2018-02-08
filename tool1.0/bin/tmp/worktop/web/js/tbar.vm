@@ -1,0 +1,166 @@
+/**
+ * 工作台Tbar
+ * 
+ */
+var WorkBenchTbar = (function($, window, document){
+#foreach($itemNodeCode in $itemNodeCodes)
+#set($temp=$velocityCount)
+if(itemNodeCode=='$itemNodeCode')
+{
+       // 固定按钮、批量操作按钮、待办
+   var tbar_D = [
+         '<div class="handel">',
+#foreach($button in $buttons)
+#if($velocityCount==$temp)
+#foreach($column in $button.split(","))
+#if($column=="a")  
+         '<button class="btn_add" button-click="create">创建待办事项</button>',
+#end
+#if($column=="b")         
+         '<button class="btn_submit" button-click="approve">申报业务</button>',
+#end
+#if($column=="c")         
+         '<button class="btn_delete" button-click="delete">删除业务</button>',	
+#end
+#if($column=="d")            
+         '<button class="btn_end" button-click="stop">终止业务</button>',
+#end
+#if($column=="e")         
+#end
+#if($column=="f")         
+         '<button class="btn_agree" button-click="recheckAgree">同意</button>',
+#end
+#if($column=="g")         
+         '<button class="btn_back" button-click="recheckBack">退回</button>', 
+#end
+#if($column=="h")         
+         '<button class="btn_disagree" button-click="recheckDisAgree">审批不同意</button>',	  
+#end          
+#end	
+#end
+#end
+		'</div>'
+			].join('');
+}
+#end
+#foreach($itemNodeCode in $itemNodeCodes)
+#set($temp=$velocityCount)
+if(itemNodeCode=='$itemNodeCode')
+{
+// 固定按钮、批量操作按钮、已办
+	var tbar_Y = [
+	    	'<div class="handel">',
+#foreach($button in $buttons)
+#if($velocityCount==$temp)
+#foreach($column in $button.split(","))
+#if($column=="e")  	    		
+	 		'<button class="btn_back" button-click="revoke">撤回业务</button>',
+#end          
+#end	
+#end
+#end	 		
+	    	'</div>'
+	].join('');
+}	
+#end	
+	return function(settings) {
+		TplNamedTbar.extend(this, settings, function() {
+			var worktop = this.settings.worktop;
+			if(this.settings.dbflag=="1"){
+				this.tbar = $(tbar_D).insertAfter(worktop.form.ct); //固定按钮要放到form下面，不需要此按钮可以不初始化
+			}else if(this.settings.dbflag=="2"){
+				this.tbar = $(tbar_Y).insertAfter(worktop.form.ct); //固定按钮要放到form下面，不需要此按钮可以不初始化
+			}
+			this.ct = this.tbar;//别名
+#foreach($itemNodeCode in $itemNodeCodes)
+#set($temp=$velocityCount)
+		if(itemNodeCode=='$itemNodeCode')
+		{	
+	 		//按钮设置
+			this.settings.buttons = {
+				//参数说明：
+				//第一个参数为grid对象；第二个参数更具情况而定，如果是tbar，则为null，如果是浮动按钮，则为当前行数据
+#foreach($button in $buttons)
+#if($velocityCount==$temp)
+#foreach($column in $button.split(","))
+#if($column=="a")  	    						  
+				   'create':function(g)
+					{
+						//创建业务
+						$.ajax({
+				    		url : 'create${bo}.do?method=create${bo}',
+				    		dataType : 'json',
+				    		error : function(x,t) {
+				    			MessageBox.alert("提示","出错了!");
+				    		},
+				    		async : false,
+				    		success : function(data) {
+				    			if (data.success) {
+				    				MessageBox.alert("提示","待办事项创建成功");
+				    				BizDefaultTaskFlowAction.processInformation(data,worktop);
+				    			}else{
+				    				MessageBox.alert("提示",data.message);
+				    			}
+				    		}
+				    	});
+					},
+#end 					
+#if($column=="b")  						
+				 //申报业务
+					'approve':function(g)
+					{
+						BizDefaultTaskFlowAction.approve.call(worktop,worktop,g);
+					},
+#end 					
+#if($column=="c")  						
+				 //删除业务
+					'delete':function(g) 
+					{
+						BizDefaultTaskFlowAction.del.call(worktop,worktop,g);
+					},
+#end 					
+#if($column=="d")  						   
+				//终止业务
+					'stop':function(g)
+					{
+						BizDefaultTaskFlowAction.stop.call(worktop,worktop,g);
+					},
+#end 					
+#if($column=="e")  						  
+				 //撤回业务
+					'revoke':function(g) 
+					{
+						BizDefaultTaskFlowAction.revoke.call(worktop,worktop,g);
+					},
+#end 					
+#if($column=="f")  						
+				//审批同意
+					'recheckAgree':function(g)
+					{
+						BizDefaultTaskFlowAction.recheckAgree.call(worktop,worktop,g);
+					},
+#end 					
+#if($column=="g")  						
+				//业务退回
+					'recheckBack':function(g)
+					{
+						BizDefaultTaskFlowAction.recheckBack.call(worktop,worktop,g);
+					},
+#end 					
+#if($column=="h")  						 
+				//审核不通过
+					'recheckDisAgree':function(g)
+					{
+						BizDefaultTaskFlowAction.recheckDisAgree.call(worktop,worktop,g);
+					},
+#end          
+#end	
+#end
+#end						
+			}
+	  }
+#end	       
+			});
+		}
+	
+})(jQuery, window, document);

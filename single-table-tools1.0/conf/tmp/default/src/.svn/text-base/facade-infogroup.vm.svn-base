@@ -1,0 +1,101 @@
+﻿/**
+${head}
+**/
+package ${pkg}.facade;
+
+import java.util.List;
+import ${Config.project.pkg}.dto.${bo}DTO;
+import ${Config.project.pkg}.service.${bo}Service;
+import com.jade.platform.core.exception.ServiceException;
+import com.jade.component.taglib.TableTagBean;
+
+public class ${bo}Facade {
+
+	private ${bo}Service ${boLF}Service;
+
+	public void set${bo}Service(${bo}Service ${boLF}Service) {
+		this.${boLF}Service = ${boLF}Service;
+	}
+
+	/**
+	 * 新增${table.displayName}详细信息
+	 * 
+	 * @param 
+	 * @return
+	 * @throws ServiceException
+	 */
+	public void create(${bo}DTO ${boLF}Dto) throws ServiceException {
+		${boLF}Service.create(${boLF}Dto);
+	}
+	
+	    /**
+	 * 删除多${table.displayName}信息
+	 * 
+	 * @param 
+	 * @return
+	 * @throws ServiceException
+	 */
+#if($ids.size() == 1)
+	public void delete(${ids.get(0).typeClass} ${boLF}Id) throws ServiceException {
+#else
+	public void delete(${bo} ${boLF}Id) throws ServiceException {
+#end
+		${boLF}Service.delete(${boLF}Id);
+	}
+
+#*	/**
+	 * 删除多条${table.displayName}信息
+	 * 
+	 * @param 
+	 * @return
+	 * @throws ServiceException
+	 */
+#if($ids.size() == 1)
+	public void deletes(List<${ids.get(0).typeClass}> ${boLF}Ids) throws ServiceException {
+        for(${ids.get(0).typeClass} ${boLF}Id : ${boLF}Ids){
+#else
+	public void deletes(List<${bo}> ${boLF}Ids) throws ServiceException {
+        for(${bo} ${boLF}Id : ${boLF}Ids){
+#end
+            ${boLF}Service.delete(${boLF}Id);
+        }
+    }*#
+
+	/**
+	 * 查找${table.displayName}详细信息
+	 * 
+	 * @param 
+	 * @return
+	 * @throws ServiceException
+	 */
+#if($ids.size() == 1)
+	public ${bo}DTO get(${ids.get(0).typeClass} ${boLF}Id) throws ServiceException {
+#else
+	public ${bo}DTO get(${bo} ${boLF}Id) throws ServiceException {
+#end
+		return ${boLF}Service.get(${boLF}Id);
+	}
+	
+	/**
+	 * 列出多条${table.displayName}信息
+	 * 
+	 * @param 
+	 * @return
+	 * @throws ServiceException
+	 */
+	public List<${bo}DTO> find(TableTagBean ttb) throws ServiceException {
+		return ${boLF}Service.find(ttb);
+	}
+    
+    /**
+	 * 更新&修改${table.displayName}详细信息
+	 * 
+	 * @param 
+	 * @return
+	 * @throws ServiceException
+	 */
+	public void update(${bo}DTO ${boLF}Dto) throws ServiceException {
+		${boLF}Service.update(${boLF}Dto);
+	}
+
+}

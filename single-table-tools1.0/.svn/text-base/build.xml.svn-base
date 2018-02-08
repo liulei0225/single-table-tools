@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="tool2" basedir="." default="help">
+    <!--  =============== 引用properties属性文件 ================== -->
+    <!--<property file="build.properties"/>-->
+
+    <!-- 代码目录 -->
+    <property name="java" value="src"/>
+    <property name="conf" value="conf"/>
+    <!-- Java编译CLASSPATH -->
+    <path id="master-classpath">
+        <!-- 加入公用lib包 -->
+        <fileset dir="./libs">
+            <include name="**/*.jar"/>
+        </fileset>
+        <!--<fileset dir="../platform-tool/libs">
+            <include name="**/platform*.jar"/>
+        </fileset>-->
+    </path>
+
+    <!-- =================================================================== -->
+    <!-- 帮助信息 -->
+    <!-- =================================================================== -->
+    <target name="help">
+        <echo message="JadeFortune Application Build File for JDK1.5"/>
+        <echo message="用法：ant -[target]"/>
+        <echo message="------------------------------------------------------"/>
+        <echo message="[target]如下"/>
+        <echo message="  clean        清空所有输出文件包括build和部署目录"/>
+        <echo message="  exploded-app 创建展开目录形式的应用结构"/>
+        <echo message="  war          创建用于发布的WAR包文件（适用于生产打包、远程部署）"/>
+        <echo message="  deploy       将扩展目录直接copy到appserver运行环境下(适用于编译环境与运行环境分离)"/>
+        <echo message="  i18n         将资源文件转换成UTF-8码,并copy到 classpath下(适用于热部署)"/>
+        <echo message="------------------------------------------------------"/>
+    </target>
+
+    <!-- clean -->
+    <target name="clean" description="清空所有输出文件包括build和部署目录">
+        <mkdir dir="temp"/>
+    </target>
+
+
+    <!-- 所有文件统一打包 -->
+    <target name="jar">
+        <mkdir dir="temp/building/all"/>
+        <javac destdir="temp/building/all" target="1.5" debug="true" deprecation="false" optimize="false"
+               failonerror="true" fork="true" memoryMaximumSize="512m" encoding="UTF-8">
+            <src path="${java}"/>
+            <classpath refid="master-classpath"/>
+        </javac>
+        <!--<copy todir="temp/building/all">
+            <fileset dir="${conf}">
+                <include name="**/*.vm"/>
+                <include name="**/*.properties"/>
+            </fileset>
+        </copy>-->
+        <jar basedir="temp/building/all" jarfile="libs/jade-tool2.jar" compress="false"/>
+        <delete dir="temp"/>
+    </target>
+
+    <!-- 所有文件统一打包 -->
+    <target name="src">
+        <mkdir dir="temp/building/all"/>
+        <copy todir="temp/building/all">
+            <fileset dir="${java}">
+                <include name="**/*"/>
+                <exclude name="**/core/util/**/*"/>
+            </fileset>
+        </copy>
+        <!--<copy todir="temp/building/all">
+            <fileset dir="${conf}">
+                <include name="**/*.vm"/>
+                <include name="**/*.properties"/>
+            </fileset>
+        </copy>-->
+        <jar basedir="temp/building/all" jarfile="libs/jade-tool2-src.jar" compress="false"/>
+        <delete dir="temp"/>
+    </target>
+
+    <target name="jar all" depends="jar, src" description="打class 与 source包"/>
+
+</project>

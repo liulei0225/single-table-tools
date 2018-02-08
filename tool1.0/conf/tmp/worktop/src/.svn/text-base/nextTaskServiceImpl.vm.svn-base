@@ -1,0 +1,20 @@
+/**
+${head}
+**/
+package ${pkg}.service.flow;
+
+import com.jade.hr.component.task.service.impl.TaskNextAbstractService;
+import com.jade.platform.core.exception.ServiceException;
+
+/**
+ * 上报,同意，退回业务的实现
+ *
+ */
+public class ${bo}NextTaskServiceImpl extends TaskNextAbstractService {
+
+	public void modifySubTaskInfoByNext(Long bizTaskOid)
+			throws ServiceException {
+	}
+	
+
+}

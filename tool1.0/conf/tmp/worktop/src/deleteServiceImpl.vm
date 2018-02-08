@@ -1,0 +1,19 @@
+/**
+${head}
+**/
+package ${pkg}.service.flow;
+
+import com.jade.hr.component.task.service.impl.TaskDeleteAbstractService;
+import com.jade.platform.core.exception.ServiceException;
+
+/**
+ * 业务删除
+ *
+ */
+public class ${bo}TaskDeleteServiceImpl extends TaskDeleteAbstractService {
+
+	public void deleteSubTaskInfo(Long bizTaskOid) throws ServiceException {
+		
+	}
+
+}

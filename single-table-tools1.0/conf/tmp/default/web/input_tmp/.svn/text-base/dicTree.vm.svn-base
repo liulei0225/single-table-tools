@@ -1,0 +1,6 @@
+#set($s='$')<script type='text/javascript' src='component/dictionary/dictionaryTreeSelect.js'></script>
+<!-- 调用组件js方法 -->
+<html:text property="${column.property}Str" style="width:40%"/><html:hidden property="${column.property}"/>
+<input type="button" onclick="spreadTree('${column.extProp.get("dicType")}',${column.property}Str,${column.property}, true);" value="选">
+<input type="button" onclick="clearText(${column.property}Str,${column.property})" value="清">
+#valid($column, ${column.property})

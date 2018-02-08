@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+${head}
+-->
+<!DOCTYPE struts-config PUBLIC
+          "-//Apache Software Foundation//DTD Struts Configuration 1.1//EN"
+          "http://jakarta.apache.org/struts/dtds/struts-config_1_1.dtd">
+
+<struts-config>
+
+	<form-beans>
+#foreach($table in $tables)
+		<form-bean name="${Util.lowerFirst(${table.boName})}Form" type="${Config.project.pkg}.web.form.${table.boName}Form" />
+#end
+	</form-beans>
+
+	<action-mappings>
+#foreach($table in $tables)
+#set($boLF = ${Util.lowerFirst(${table.boName})})
+#set($boLA = ${table.boName.toLowerCase()})
+		<!-- ${boLF} -->
+		<action path="/${boLF}List"
+                parameter="method"
+				type="${Config.project.pkg}.web.action.${table.boName}Action">
+				<forward name="success" path="/${boLA}/${boLA}_list.jsp" />
+				<forward name="fail" path="/${boLA}/${boLA}_list.jsp" />
+		</action>
+		<action path="/${boLF}GoUpdate"
+                parameter="method"
+				name="${boLF}Form"
+                scope="request"
+				input="/${boLF}Show.do?method=show"
+				type="${Config.project.pkg}.web.action.${table.boName}Action"
+				validate="false">	
+				<set-property property="cancellable" value="true"/>
+				<forward name="success" path="/${boLA}/${boLA}_update.jsp" />
+				<forward name="cancel" path="/${boLF}List.do?method=list"/>
+		</action>
+		<action path="/${boLF}GoCreate"
+				parameter="method"
+				input="/${boLF}List.do?method=list"
+				type="${Config.project.pkg}.web.action.${table.boName}Action">
+				<forward name="success" path="/${boLA}/${boLA}_insert.jsp" />
+		</action>
+		<action path="/${boLF}Show"
+				parameter="method"
+				name="${boLF}Form"
+                scope="request"
+				input="/${boLF}List.do?method=list"
+				type="${Config.project.pkg}.web.action.${table.boName}Action"
+				validate="false">
+                <set-property property="cancellable" value="true"/>
+				<forward name="success" path="/${boLA}/${boLA}_view.jsp" />
+		</action>
+		<action path="/${boLF}Delete"
+				parameter="method"
+				input="/${boLF}Show.do?method=show"
+				type="${Config.project.pkg}.web.action.${table.boName}Action">
+				<set-property property="cancellable" value="true"/>
+				<forward name="success" path="/${boLF}List.do?method=list" />
+		</action>
+		<action path="/${boLF}Create"
+				parameter="method"
+				input="/${boLF}GoCreate.do?method=goCreate"
+				name="${boLF}Form"
+				scope="request"
+				type="${Config.project.pkg}.web.action.${table.boName}Action"
+				validate="true">
+				<set-property property="cancellable" value="true"/>
+				<forward name="success" path="/${boLA}/${boLA}_insert.jsp" />
+		</action>
+		<action path="/${boLF}Update"
+				parameter="method"
+				input="/${boLF}GoUpdate.do?method=goUpdateView"
+				name="${boLF}Form"
+				scope="request"
+				type="${Config.project.pkg}.web.action.${table.boName}Action"
+				validate="true">
+				<set-property property="cancellable" value="true"/>
+				<forward name="success" path="/${boLF}Show.do?method=show" />
+				<forward name="cancel" path="/${boLF}Show.do?method=show"/>
+		</action>
+
+#end
+	</action-mappings>
+
+</struts-config>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<!--
+${head}
+-->
+<!DOCTYPE hibernate-mapping PUBLIC
+        "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+        "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+<hibernate-mapping package="${pkg}.bo">
+    <class name="${bo}" table="${table.tableName}"#if($table.schema && $table.schema != '') schema="${table.schema}"#end>
+#if($ids.size() == 1)
+#set($id=$ids.get(0))
+        <id name="${id.property}" column="${id.columnName}" type="${id.typeClass}">
+            <generator class="sequence">
+                <param name="sequence">SEQ_${table.tableName}</param>
+            </generator>
+        </id>
+#else
+        <composite-id>
+#foreach($id in $ids)
+            <key-property name="${id.property}" column="${id.columnName}" type="${id.typeClass}"/>
+#end
+        </composite-id>
+        #end
+
+#foreach($co in $columns)
+        <property name="${co.property}" type="${co.typeClass}">
+            <column name="${co.columnName}">
+                <comment>${co.displayName}</comment>
+            </column>
+        </property>
+#end
+    </class>
+</hibernate-mapping>

@@ -1,0 +1,378 @@
+﻿/**
+${head}
+**/
+package ${pkg}.web.action;
+
+import jade.workflow.utils.ObjectUtil;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.jade.component.dictionary.utils.DicHelper;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.struts.action.ActionForm;
+import org.apache.struts.action.ActionForward;
+import org.apache.struts.action.ActionMapping;
+
+import com.jade.component.taglib.TableTagBean;
+import com.jade.hr.res.dictionary.DicConstants;
+import ${Config.project.pkg}.dto.${bo}DTO;
+import ${Config.project.pkg}.facade.${bo}Facade;
+import ${Config.project.pkg}.web.form.${bo}Form;
+import com.jade.platform.core.exception.ServiceException;
+import com.jade.platform.core.util.BeanHelper;
+import com.jade.platform.core.util.DateUtil;
+import com.jade.platform.core.util.JSONHelper;
+import com.jade.platform.core.util.NumberUtils;
+import com.jade.platform.core.util.SpringBeanUtil;
+import com.jade.platform.core.util.StringUtil;
+import com.jade.platform.core.web.UserContext;
+import com.jade.platform.core.web.action.BaseAction;
+
+public class ${bo}Action extends BaseAction {
+	private ${bo}Facade ${boLF}Facade = (${bo}Facade) SpringBeanUtil.getBean("${boLF}Facade");
+
+	/**
+	 * 列出所有 ${table.displayName}信息
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward list(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		TableTagBean ttb = TableTagBean.getFromRequest(request);
+		if (request.getMethod().equals("POST")) {
+	        Map map = BeanUtils.describe(form);
+	        ttb.getCondition().copyFrom(map, true);
+	    } else {
+	        BeanUtils.populate(form, ttb.getCondition());
+	        request.setAttribute("${boLF}Form", form);
+	    }
+        try {
+	        ${boLF}Facade.find(ttb);
+	        request.setAttribute("ttb", ttb);
+        } catch (Exception se) {
+			this.handleException(request, se, null);
+			return mapping.findForward("fail");
+		}
+        return mapping.findForward("success");
+	}
+	
+	/**
+	 * 查找单个${table.displayName}信息
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward show(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+#foreach($id in $ids)
+        String ${id.property} = request.getParameter("${id.property}");
+        if (StringUtil.isBlank(${id.property})) {
+            ${id.property} = ObjectUtil.getValue(request.getAttribute("${id.property}"), String.class);
+        }
+#end
+		try {
+#foreach($id in $ids)
+            if (StringUtils.isEmpty(${id.property})) {
+				throw new ServiceException("error.pk.invalid", "${boLF} ${id.property} is null");
+			}
+#end
+#if($ids.size() == 1)
+            ${bo}DTO ${boLF}Dto = ${boLF}Facade.get(ObjectUtil.getValue(${ids.get(0).property}, ${ids.get(0).typeClass}.class));
+#else
+            ${bo}DTO ${boLF}Dto = ${boLF}Facade.get(new ${bo}(#foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end));
+#end
+			if (null == ${boLF}Dto) {
+				throw new ServiceException(null, "查询不到相关信息");
+			}
+			${bo}Form ${boLF}Form = BeanHelper.copyProperties(${boLF}Dto, ${bo}Form.class);
+#foreach($column in $columns)
+#if("dicSelect" == ${column.inputType} || "dicTree" == ${column.inputType})
+			if(StringUtils.isNotEmpty(${boLF}Dto.get${Util.upperFirst(${column.property})}()))
+			{
+				${boLF}Form.set${Util.upperFirst(${column.property})}(DicHelper.viewName(DicConstants.${column.ExtProp.get("dicType")}, ${boLF}Dto.get${Util.upperFirst(${column.property})}()));
+			 }
+#*
+#elseif("date" == ${column.inputType})
+			if(StringUtils.isNotEmpty(${boLF}Dto.get${Util.upperFirst(${column.property})}()))
+			{
+				${boLF}Form.set${Util.upperFirst(${column.property})}(DateUtil.format(${boLF}Dto.get${Util.upperFirst(${column.property})}(), "yyyy-MM"));
+			 }
+*#
+#end
+#end
+			request.setAttribute("${boLF}Form", ${boLF}Form);
+#foreach($id in $ids)
+            request.setAttribute("${id.property}", ${id.property});
+#end
+		} catch (Exception se) {
+			this.handleException(request, se, #foreach( $id in $ids )#if($velocityCount > 1) + #end"$id.property=" + $id.property#end);
+			return mapping.getInputForward();
+		}
+		return mapping.findForward("success");
+	}
+
+	/**
+	 * 跳转到 ${table.displayName}信息添加页面
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward goCreate(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		//参数校验，可根据实际情况修改
+#if($Util.isNotBlank(${fkOid}))	
+		String ${fkOid} = request.getParameter("${fkOid}");
+#end
+		try
+		{
+			if(StringUtils.isEmpty(${fkOid}))
+			{
+				throw new ServiceException("${fkOid} is null");
+			}
+			request.setAttribute("${fkOid}", ${fkOid});
+		}
+		catch(Exception se)
+		{
+			this.handleException(request, se, null);
+			return mapping.getInputForward();
+		}
+		return mapping.findForward(FORWARD_SUCCESS);
+	}
+
+	/**
+	 * 添加 ${table.displayName}信息
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward create(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		if (this.isCancelled(request)) {
+			return mapping.findForward("cancel");
+		}
+#if($Util.isNotBlank(${fkOid}))	
+		String ${fkOid} = request.getParameter("${fkOid}");
+#end
+		${bo}Form ${boLF}Form = (${bo}Form) form;
+		try {
+			if(StringUtils.isEmpty(${fkOid}))
+			{
+				throw new ServiceException("${fkOid} is null");
+			}
+			${bo}DTO ${boLF}Dto = BeanHelper.copyProperties(${boLF}Form, ${bo}DTO.class);
+			${boLF}Dto.setPersonOid(NumberUtils.longValue(personOid));
+			${boLF}Dto.setCreatedByCode(UserContext.getLoginUserID());
+			${boLF}Dto.setCreatedByName(UserContext.getLoginUserName());
+			${boLF}Dto.setCreatedDate(DateUtil.now());
+			${boLF}Facade.create(${boLF}Dto);
+			response.getWriter().write(JSONHelper.fromObject(true, null).toString());
+		} catch (Exception se) {
+			this.handleException(request, se, null);
+			response.getWriter().write(JSONHelper.fromObject(false, StringUtils.defaultIfEmpty(se.getMessage(), "修改失败")).toString());
+		}
+
+		return null;
+	}
+
+
+	/**
+	 * 跳转到 ${table.displayName}信息修改（编辑）页面前的查询回显
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward goUpdate(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		if(this.isCancelled(request)) {
+			return mapping.findForward("cancel");
+		}
+
+#foreach($id in $ids)
+        String ${id.property} = request.getParameter("${id.property}");
+#end
+
+		try {
+#foreach($id in $ids)
+            if (StringUtils.isBlank(${id.property})) {
+				throw new ServiceException("error.pk.invalid", "${boLF} ${id.property} is null");
+			}
+#end
+#if($ids.size() == 1)
+            ${bo}DTO ${boLF}Dto = ${boLF}Facade.get(ObjectUtil.getValue(${ids.get(0).property}, ${ids.get(0).typeClass}.class));
+#else
+            ${bo}DTO ${boLF}Dto = ${boLF}Facade.get(new ${bo}(#foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end));
+#end
+			if (null == ${boLF}Dto) {
+				throw new ServiceException("error.object.notfound", "${boLF} not found by #foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end");
+			}
+			${bo}Form ${boLF}Form = BeanHelper.copyProperties(${boLF}Dto, ${bo}Form.class);
+			request.setAttribute("${boLF}Form", ${boLF}Form);
+#foreach($id in $ids)
+            request.setAttribute("${id.property}", ${id.property});
+#end
+		} catch (Exception se) {
+			this.handleException(request, se, #foreach( $id in $ids )#if($velocityCount > 1) + #end"$id.property=" + $id.property#end);
+			return mapping.getInputForward();
+		}
+		return goUpdateView(mapping, form, request, response);
+	}
+
+	/**
+	 * 跳转到 ${table.displayName}信息修改（编辑）页面
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+    public ActionForward goUpdateView(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        //add jsp init values
+        ${bo}Form ${boLF}Form = (${bo}Form) form;
+#foreach($column in $allColumns)
+#if(${column.inputType} == 'dicTree')
+        ${boLF}Form.set${Util.upperFirst(${column.property})}Str(DicHelper.viewName("${column.extProp.get("dicType")}", ${boLF}Form.get${Util.upperFirst(${column.property})}()));
+#end
+#end
+        return mapping.findForward("success");
+    }
+
+	/**
+	 * 更新 ${table.displayName}信息
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward update(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		if(this.isCancelled(request)) {
+			return mapping.findForward("cancel");
+		}
+#foreach($id in $ids)
+        String ${id.property} = request.getParameter("${id.property}");
+#end
+#if($Util.isNotBlank(${fkOid}))	
+		String ${fkOid} = request.getParameter("${fkOid}");
+#end		
+		${bo}Form ${boLF}Form = (${bo}Form) form;
+		try {
+#foreach($id in $ids)
+            if (StringUtils.isBlank(${id.property})) {
+				throw new ServiceException("error.pk.invalid", "${boLF} ${id.property} is null");
+			}
+#end
+			if(StringUtils.isEmpty(${fkOid}))
+			{
+				throw new ServiceException("${fkOid} is null");
+			}
+			${bo}DTO ${boLF}Dto = new ${bo}DTO();
+			BeanHelper.copyProperties(${boLF}Form, ${boLF}Dto);
+#if($Util.isNotBlank(${fkOid}))
+			${boLF}Dto.set${Util.upperFirst(${fkOid})}(NumberUtils.longValue(${fkOid}));
+#end
+			${boLF}Dto.setUpdatedByCode(UserContext.getLoginUserID());
+			${boLF}Dto.setUpdatedByName(UserContext.getLoginUserName());
+			${boLF}Dto.setUpdatedDate(DateUtil.now());
+			${boLF}Facade.update(${boLF}Dto);
+			response.getWriter().write(JSONHelper.fromObject(true, null).toString());
+		} catch (Exception se) {
+			this.handleException(request, se, ${boLF}Form);
+			response.getWriter().write(JSONHelper.fromObject(false, StringUtils.defaultIfEmpty(se.getMessage(), "修改失败")).toString());
+		}
+
+		return null;
+	}
+
+#*	/**
+	 * 同时删除多条 ${table.displayName}信息
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward deletes(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String ${boLF}s = request.getParameter("${boLF}s");
+
+        if(StringUtils.isNotBlank(${boLF}s)){
+            try {
+#if($ids.size() == 1)
+                ${boLF}Facade.deletes(new ArrayList(ObjectUtil.converts(${boLF}s.split(","), ${ids.get(0).typeClass}.class)));
+#else
+                List<${bo}> list = new ArrayList();
+                for(String ${boLF} : ${boLF}.split(","))){
+                    list.add(new ${bo}(#foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end));
+                }
+                ${boLF}Facade.deletes(list);
+#end
+            } catch (Exception se) {
+                this.handleException(request, se, ${boLF}s);
+                return mapping.getInputForward();
+            }
+        }
+		return mapping.findForward("success");
+	}*#
+
+	/**
+	 * 删除 ${table.displayName}信息
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+    public ActionForward delete(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+#foreach($id in $ids)
+           String ${id.property} = request.getParameter("${id.property}");
+#end
+        try {
+#foreach($id in $ids)
+           if(StringUtils.isEmpty(${id.property}))
+			{
+				throw new ServiceException(null, "${id.property} is null");
+			}
+#end
+#if($ids.size() == 1)
+            ${boLF}Facade.delete(ObjectUtil.getValue(${ids.get(0).property}, ${ids.get(0).typeClass}.class));
+#else
+            ${boLF}Facade.delete(new ${bo}(#foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end));
+#end
+        } catch (Exception se) {
+            this.handleException(request, se, #foreach( $id in $ids )#if($velocityCount > 1) + #end"$id.property=" + $id.property#end);
+            return mapping.getInputForward();
+        }
+        return null;
+    }
+
+}

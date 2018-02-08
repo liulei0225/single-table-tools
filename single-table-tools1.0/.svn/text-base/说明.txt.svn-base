@@ -1,0 +1,70 @@
+生成操作说明
+======================================================
+1.配置common-config.properties文件
+	修改gene-xml中的文件路径,此文件用于定义生成规则
+	生成文件定义可参考"gene.xml格式说明"部分
+
+2.执行gene.bat,生成
+
+
+gene.xml格式说明
+======================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<gene-conf>
+    <!--name:项目名,小写;
+    	dir:生成路径;
+    	pkg=基础包;
+    	defaultGene:默认是否生成所有,每项可单独配置,默认值为false-->
+    <project name="demo"
+             dir="E:\jade_workspace_ext\demo"
+             pkg="com.qieren.demo" defaultGene="true">
+        <hbm gene="true"/><!--是否生成hbm文件,true生成,false,不生成,如果不配置此项,则为defaultGene-->
+        <bo gene="true"/>
+        <form gene="true"/>
+        <action gene="true"/>
+        <facade gene="true"/>
+        <service gene="true"/>
+        <jsp-list gene="true"/>
+        <jsp-view gene="true"/>
+        <jsp-insert gene="true"/>
+        <jsp-update gene="true"/>
+        <spring gene="true"/>
+        <struts gene="true"/>
+        <validation gene="true"/>
+        <i18n gene="true"/>
+    </project>
+    <!--数据库配置,dbDriver数据库驱动类,默认支持oracle,其它数据库需要加入对应的lib
+    	dbUrl,数据库连接
+    	userName,登录用户
+    	password登录密码-->
+    <db dbDriver="oracle.jdbc.driver.OracleDriver"
+        dbUrl="jdbc:oracle:thin:@192.168.1.163:1521:testsrv"
+        userName="jadeplatform"
+        password="jadeplatform">
+        <!--所要生成的表,可填多个,以","分隔-->
+        <include tables="demo"/>
+        <!--要排除的表,可填多个,以","分隔-->
+        <exclude tables=""/>
+    </db>
+    <!--表名, 对象名, 生成列数(lable与input为一列)-->
+    <table tableName="demo" boName="Demo" columnSize="2">
+        <!--columnName:列名, property:对象属性名, inputType:输入控件(date,float,int,text,textarea, parameter, dicSelect, dicTree)
+        , nullAble:是否可以空, columnSize:字段长度, typeClass:属性类别(如:java.util.String)
+        , geneType:生成级别(0,由页面输入;1,新增时系统生成,2,修改时系统生成,3,自动生成(如:id))
+        , colSpan:该列当用几列(不能小于table 的columnSize), queryCond:在查询页面中是否做为查询条件, listShow:是否在查询页面的查询列表中显示
+        , paraType:输入控件为parameter时的参数类别, dicType:输入控件为dic时的字典类别, emptyText:parameter或dicSelect的默认值
+        , order:字段在页面中的显示顺序-->
+        <column columnName="" property="" inputType=""
+                nullAble="" columnSize="" typeClass=""
+                geneType=""
+                colSpan="" queryCond="" listShow=""
+                paraType="" dicType="" emptyText=""
+                order=""/>
+        <column columnName="address" colSpan="2" listShow="true"/>
+        <column columnName="name" queryCond="true" listShow="true" inputType="text" order="1"/>
+        <column columnName="age" queryCond="true" listShow="true"/>
+        <column columnName="birthday" queryCond="true" listShow="true" colSpan="1" order="2"/>
+        <column columnName="sex" queryCond="true" listShow="true" inputType="parameter" paraType="Sex" emptyText="-请选择-" order="3"/>
+        <column columnName="home" queryCond="true" listShow="true" inputType="dicTree" dicType="SZRS0001"/><!-- emptyText="-请选择-"-->
+    </table>
+</gene-conf>

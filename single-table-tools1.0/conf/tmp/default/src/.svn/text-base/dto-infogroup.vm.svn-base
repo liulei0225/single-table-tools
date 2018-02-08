@@ -1,0 +1,22 @@
+/**
+${head} 
+ */
+package ${pkg}.dto;
+
+
+public class ${bo}DTO {
+
+#foreach($column in $allColumns)
+	private ${column.typeClass} ${column.property};        //${column.displayName}
+#end	
+
+#foreach($column in $allColumns)
+	public void set${Util.upperFirst($column.property)}($column.typeClass $column.property){
+		this.$column.property = $column.property;
+	}
+
+	public $column.typeClass get${Util.upperFirst($column.property)}(){
+		return this.$column.property;
+	}
+#end
+}

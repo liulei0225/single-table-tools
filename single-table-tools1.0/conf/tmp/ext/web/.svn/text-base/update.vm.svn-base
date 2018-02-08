@@ -1,0 +1,94 @@
+#set($title=${table.displayName}+' <bean:message key="button.modify" />')
+#parse("${tmpDir}web/jsp_head.vm")
+
+<script type="text/javascript" language="javascript">
+	function sc(){
+	    document.getElementById("buttons").style.top = (document.body.scrollTop + document.body.clientHeight - document.getElementById("buttons").offsetHeight)	+ "px";
+    }
+
+    window.onscroll = sc;
+
+    Ext.onReady(function () {
+        var buttons = new Ext.Toolbar([
+            {
+                xtype: 'tbbutton',
+                pressed: true,
+                text: '保存',
+                iconCls: 'mod',
+                handler: submit
+            },
+            {
+                xtype: 'tbbutton',
+                pressed: true,
+                text: '返回',
+                iconCls: 'recall',
+                handler: function(){
+                    parent.win.win.close();
+                }
+            }
+        ]);
+        buttons.render("buttons");
+        sc();
+    });
+
+    //提交
+    function submit() {
+        ${boLF}Form.submit();
+        showProgressText();
+    }
+</script>
+<style type="text/css">
+    .vali_error{
+        font-weight: bold;
+        color: red;
+    }
+</style>
+</head>
+
+<body>
+    #*<logic:messagesPresent>
+		<bean:message key="errors.header" />
+		<ul>
+			<html:messages id="error">
+				<li>
+					<bean:write name="error" />
+				</li>
+			</html:messages>
+		</ul>
+	</logic:messagesPresent>*#
+	<html:form action="${boLF}Update.do?method=update" method="post">
+		<table width="100%" class="list" border="0" cellspacing="0" cellpadding="3">
+			<tr>
+				<th colspan="#set($cs=${table.columnSize}*2)${cs}">
+                    ${table.displayName}<bean:message key="button.modify" />
+#foreach($id in $ids)
+            <html:hidden name="${boLF}Form" property="${id.property}"/>
+#end
+				</th>
+			</tr>
+#set($labelWidth=100/${table.columnSize}/3)
+#set($inputWidth=100/${table.columnSize}*2/3)
+#macro(inputCol $column)
+            <td class="formLabel" style="width: ${labelWidth}%;">
+                ${column.displayName}
+            </td>
+            <td#if(${column.colSpan} > 1)#set($cosp = ${column.colSpan}*2+(-1)) colspan="${cosp}"#else style="width: ${inputWidth}%;"#end>
+                #parse("${tmpDir}web/input_tmp/${column.inputType}.vm")
+
+#*#if(!$column.nullAble)
+                <font color=red>*</font>
+#end
+                <html:messages id="error" property="${column.property}">
+                    <div class="vali_error"><bean:write name="error"/></div>
+                </html:messages>*#
+            </td>
+#end
+#table($table)
+		</table>
+		#*<p>
+			<html:submit property="edit"><bean:message key="button.save" /></html:submit>&nbsp;&nbsp;
+			<html:cancel><bean:message key="button.return" /></html:cancel>
+	    </p>*#
+	</html:form>
+    <div id="buttons" style="position: absolute; width: 100%; background: white;" />
+#parse("${tmpDir}web/jsp_foot.vm")

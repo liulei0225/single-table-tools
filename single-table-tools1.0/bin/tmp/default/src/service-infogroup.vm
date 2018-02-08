@@ -1,0 +1,67 @@
+﻿/**
+${head}
+ */
+package ${pkg}.service;
+
+import java.util.HashMap;
+import java.util.List;
+
+import com.jade.component.taglib.TableTagBean;
+import com.jade.infogroup.dto.${bo}DTO;
+
+import com.jade.platform.core.exception.ServiceException;
+import com.jade.platform.core.util.StringMap;
+
+
+public interface ${bo}Service {
+	/**
+	 * 新增${table.displayName}信息
+	 * @param 
+	 * @throws ServiceException
+	 */
+	public void create(${bo}DTO ${boLF}Dto) throws ServiceException;
+
+	/**
+	 * 获取${table.displayName}信息
+	 * @param 
+	 * @throws ServiceException
+	 */
+#if($ids.size() == 1)
+	public ${bo}DTO get(${ids.get(0).typeClass} ${boLF}Id) throws ServiceException;
+#else
+	public ${bo}DTO get(${bo} ${boLF}Id) throws ServiceException;
+#end
+    
+	/**
+	 * 修改${table.displayName}信息
+	 * @param 
+	 * @throws ServiceException
+	 */    
+	public void update(${bo}DTO ${boLF}Dto) throws ServiceException;
+
+	/**
+	 * 删除${table.displayName}信息
+	 * @param 
+	 * @throws ServiceException
+	 */    
+#if($ids.size() == 1)
+	public void delete(${ids.get(0).typeClass} ${boLF}Id) throws ServiceException;
+#else
+	public void delete(${bo} ${boLF}Id) throws ServiceException;
+#end
+    
+	/**
+	 * 查询所有${table.displayName}信息
+	 * @param 
+	 * @throws ServiceException
+	 */
+	public List<${bo}DTO> find(TableTagBean ttb) throws ServiceException; 
+
+	/**
+	 * HQL拼装
+	 * @param 
+	 * @throws ServiceException
+	 */
+    void buildHQL(StringMap params, StringBuilder hql, HashMap<String, Object> hqlParams) throws ServiceException;
+      
+}

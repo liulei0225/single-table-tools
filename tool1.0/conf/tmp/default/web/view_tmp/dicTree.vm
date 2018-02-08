@@ -1,0 +1,1 @@
+#set($s='$')<dictionary:viewDicItemName dicTypeCode="${column.extProp.get("dicType")}" dicItemCode="${s}{${beanName}.${column.property}}" />

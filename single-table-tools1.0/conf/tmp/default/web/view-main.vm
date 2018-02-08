@@ -1,0 +1,170 @@
+#set($title=${table.displayName}+' <bean:message key="button.new" />')
+#parse("${tmpDir}web/jsp_head.vm")
+
+</div>
+<!--左边人员列表-->
+<div class="left">
+    <div class="name_box">
+        <ul id="personList">
+        </ul>
+    </div>
+</div> 
+<!--右边导航-->
+<div class="right">
+    <div class="nav_box" id='informationUrl'>
+       
+    </div>
+</div>
+<!--中间主体内容-->
+<div class="center" id="center" style="margin-top:70px;"></div>
+</body>
+<script>
+$(window).resize(function(){$(".scroll_auto").css("height",$(window).height() -48);}).resize();
+var personOid=${param.personOid};//这里模板中是否可以动态获取？
+var condition=${param.condition}; 
+var functionCode=condition.functionCode;
+condition.pageNo=Math.floor((parseInt(condition.pageSize)*(parseInt(condition.pageNo)-1)+parseInt(condition.index))/10)+1;
+$(document).ready(function(){
+	findInfor(condition,personOid);
+	$(".go_back").click(function(){
+		HistoryRegister.go("goBackUrl");
+	})
+});
+function findPre(){
+	condition.pageNo=parseInt(condition.pageNo)-1;
+	if(condition.pageNo<=0){
+		alert("无上一页");
+		return;
+	}
+	$("#personList li").remove();
+	findInfor(condition,personOid);
+}
+function findNext(){
+	condition.pageNo=parseInt(condition.pageNo)+1;
+	 if((parseInt(condition.pageNo)-1)>Math.floor(parseInt(condition.total)/10)){
+		alert("已是最后一页");
+		return;
+	} 
+	$("#personList li").remove();
+	findInfor(condition,personOid);
+}
+function findInfor(condition,personOid){
+	$.ajax({
+		url : 'goFindPersonList.do?method=findAllPerson',
+		data : condition,
+		dataType : 'json',
+		type:'POST',
+		error : function() {
+			alert("error occured!!!");
+		},
+		async : true,
+		success : function(data) {
+			var li="<li class='arrow'><a href='javascript:void(0);' onclick='findPre()'><img src='img/DetailPages/arrow_up.png'/></a></li>";
+			var item=eval(data.rows);
+			$.each(item,function(index) {	
+				var personType=item[index].personType;
+				var personId=item[index].personOid;
+				if(item[index].personOid==personOid){
+					li+="<li title='"+item[index].name+"' class='name_checked'><a href='javascript:void(0);' onclick=findPersonType(this,'"+personType+"','"+personId+"')>"+item[index].name+"</a></li>";
+					findPersonType(this,personType,personId);
+				  }else{
+				    li+="<li title='"+item[index].name+"'><a href='javascript:void(0);' onclick=findPersonType(this,'"+personType+"','"+personId+"')>"+item[index].name+"</a></li>";
+				}
+			});
+			li+="<li class='arrow_bottom'><a href='javascript:void(0);' onclick='findNext()'><img src='img/DetailPages/arrow_down.png'/></a></li>";
+			$("#personList").append(li);
+		}
+	});
+}
+function findPersonType(obj,personType,personId){
+	$('#informationUrl').children().remove();
+	var liList=$("#personList li");
+	$.each(liList,function(index){
+		$(liList[index]).removeClass("name_checked");
+	})
+	 $(obj).parent().addClass("name_checked"); 
+	$.ajax({
+		url : 'goFindInformationListView.do?method=findInByfunctionCode',
+		data : {functionCode:functionCode},
+		dataType : 'json',
+		type:'POST',
+		error : function() {
+			alert("error occured!!!");
+		},
+		async : true,
+		success : function(data) {
+			if(data.success==false){
+				alert(data.message)
+			}else{
+				$("#center").empty();
+				var data=data.list;
+				var groups = [];
+				$.each(data,function(index) {
+					var indexId = data[index].libraryOid;
+					var div = "<div id="+indexId+" name="+indexId+"></div>";
+					$("#center").append(div);
+					var libraryGroupOid=data[index].libraryGroupOid;
+					var libraryGroupName=data[index].libraryGroupName
+					var group = findGroup(libraryGroupOid,groups);
+				    if(group == undefined || group == null){
+				    	group = {};
+				    	group.libraryGroupOid=libraryGroupOid;
+				    	group.libraryGroupName=libraryGroupName;
+					    var ary = [];
+					    ary.push(data[index]);
+					    group.data = ary;
+					    groups.push(group);
+					} else {
+				    	group.data.push(data[index]);
+					}
+				});
+				var div = '';
+				div+="<ul id='informationList' class='right_navtext'>";
+				for(var i=0;i<groups.length;i++){
+					div+="<p>"+groups[i].libraryGroupName+"</p>";
+					var group=groups[i].data;
+					var li="";
+					for(var j=0;j<group.length;j++){
+						var indexId = group[j].libraryOid;
+						var infoUrl= group[j].infoUrl;
+						div+="<li id='li"+indexId+"' name='"+infoUrl+"'><a href='#"+indexId+"' name='"+indexId+"' onclick=findPageUrl('"+indexId+"','"+personId+"','"+infoUrl+"')>"+group[j].libraryName+"</a></li>";
+				    }
+				}
+				div+="</ul>";
+				div+="<a class='back_top' href='#top' title='回到顶部'></a>";
+				$('#informationUrl').append(div);
+				$("#informationList li").hover(function(){
+					$(this).find('a').css('color','#fff');
+					$(this).siblings().find('a').css('color','#0195ff');
+					$(this).siblings().css('background','none');
+					$(this).css('background','#0084E2');
+				})
+				var liAyy = $("#informationList li:lt(5)");
+				liAyy.each(function(){
+				   var liId=$(this).attr("id").substring(2);	
+				   var liName=$(this).attr("name");
+				   findPageUrl(liId,personId,liName,false);
+				}) 
+			}
+		}
+	});
+}
+function findGroup(libraryGroupOid,groups){
+	for(var i=0;i<groups.length;i++){
+		if(libraryGroupOid==groups[i].libraryGroupOid){
+			return groups[i];
+		}
+	}
+}
+function findPageUrl(id,personId,infoUrl,flag){
+	$("#" + id).attr('url',infoUrl);
+	$("#" + id).load(infoUrl,{"personOid":personId,"Id":id},function(){
+		if(flag!==false){
+			var pos = $("#" + id).offset();
+			$("html,body").animate({ scrollTop: pos.top}, 1000);
+	    }
+ });
+}
+</script>
+#parse("${tmpDir}web/jsp_foot.vm")
+

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding='UTF-8'?>
+#foreach($table in $tables)
+	<!-- ${table.boName} -->
+    <entry key="${table.boName}">
+		<zh_CN>${table.displayName}</zh_CN>
+		<en_US>${table.boName}</en_US>
+	</entry>
+
+#foreach($column in $table.columns)
+	<entry key="${table.boName}.${column.property}">
+		<zh_CN>${column.displayName}</zh_CN>
+		<en_US>${Util.upperFirst(${column.property})}</en_US>
+	</entry>
+
+#end
+#end

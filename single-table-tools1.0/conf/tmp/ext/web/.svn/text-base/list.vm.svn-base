@@ -1,0 +1,35 @@
+#set($title=${table.displayName}+' List')
+#parse("${tmpDir}web/jsp_head.vm")
+<script type="text/javascript" src="${boLF}/js/${boLF}Grid.js"></script>
+<script type="text/javascript" src="${boLF}/js/${boLF}Form.js"></script>
+<script type="text/javascript" src="${boLF}/js/${boLF}Tbar.js"></script>
+<script type="text/javascript" src="${boLF}/js/${boLF}Panel.js"></script>
+<script type="text/javascript">
+var ${bo}Viewport = Ext.extend(Ext.Viewport, {
+    layout: 'border',
+    initComponent: function () {
+        ${bo}Viewport.superclass.initComponent.call(this);
+        this.centerPanel = new ${bo}Panel({
+            formUrl: this.formUrl
+        });
+        this.add(this.centerPanel);
+    }
+});
+var viewport;
+Ext.onReady(function () {
+    viewport = new ${bo}Viewport({
+        layout: 'fit',
+        formUrl: '${boLF}List.do?method=query'
+    });
+    viewport.centerPanel.addGridTbar.createDelegate(viewport.centerPanel)();
+    viewport.centerPanel.grid.syncSize();
+    viewport.centerPanel.syncSize();
+    viewport.syncSize();
+    viewport.centerPanel.form.goQuery.createDelegate(viewport.centerPanel.form)();
+});
+</script>
+
+</head>
+
+<body>
+#parse("${tmpDir}web/jsp_foot.vm")

@@ -1,0 +1,2 @@
+#set($s='$')<dictionary:dicItemSelect dicTypeCode="${column.extProp.get("dicType")}" selected="${s}{${boLF}Form.${column.property}}" name="${column.property}"#if(${column.extProp.get("emptyText")}) emptyText="${column.extProp.get("emptyText")}"#end style="width:50%" />
+#valid($column, ${column.property})

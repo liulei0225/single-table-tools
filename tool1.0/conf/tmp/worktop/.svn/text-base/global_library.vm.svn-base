@@ -1,0 +1,60 @@
+####空列
+#macro( blankCol $num)
+#foreach( $n in [1..$num] )
+        <td class="formLabel" style="width: ${labelWidth}%;">&nbsp;</td>
+        <td style="width: ${inputWidth}%;">&nbsp;</td>
+#end
+#end
+
+###
+#macro( table $table)
+#buildTable($table.ColumnSize, $table.Columns, true)
+#end
+
+####
+#macro( buildTable $cs, $columns, $isFilter)
+#set($idx = 0)
+#foreach($column in $columns)
+#if(!$isFilter || $column.geneType == 0)
+#if($idx == 0)
+
+    <tr>
+#end
+#if($idx + $column.ColSpan > $cs)
+##补齐上行剩下的列
+#set($num = ${cs}-${idx})
+#blankCol($num)
+#set($idx = 0)
+    </tr>
+    <tr>
+#end
+#if($idx + $column.ColSpan <= $cs)
+## 列名 输入框
+#inputCol($column)
+#set($idx = $idx + $column.ColSpan)
+#if($idx == $cs)
+    </tr>
+#set($idx = 0)
+#end
+#end
+#end
+#end
+##如果最后一行没有满,那就补齐
+#if($idx != 0)
+##补齐上行剩下的列
+#set($num = ${cs}-${idx})
+#blankCol($num)
+</tr>
+#end
+#end
+
+#macro(valid $column $property)
+#if(!$column.nullAble)
+        <font color=red>*</font>
+#end
+        <html:messages id="error" property="${property}">
+            <div class="vali_error">
+                <bean:write name="error"/>
+            </div>
+        </html:messages>
+#end

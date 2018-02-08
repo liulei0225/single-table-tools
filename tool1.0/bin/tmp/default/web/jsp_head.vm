@@ -1,0 +1,16 @@
+<!--
+${head}
+-->
+<%@ page contentType="text/html; charset=UTF-8" language="java"%>
+<%@ include file="/include/jsp_headers.jsp"%>
+<!--
+ * @path        ${path}
+ * @author      Jade CRUD Framework
+ * @created     2013-11-11
+ * @version     2.0
+-->
+<html:html lang="true">
+<head>
+<title>${title}</title>
+<%@ include file="/include/html_headers.jsp" %>
+<%@ include file="/include/Ext_Js_Css.jsp"%>

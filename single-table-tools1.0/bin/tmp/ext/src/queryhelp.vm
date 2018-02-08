@@ -1,0 +1,8 @@
+/**
+${head}
+**/
+package ${pkg}.queryHelp;
+
+public class ${bo}QueryHelp {
+
+}

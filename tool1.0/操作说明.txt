@@ -1,0 +1,82 @@
+生成操作说明
+======================================================
+1.配置common-config.properties文件
+	修改gene-xml中的文件路径,此文件用于定义生成规则
+	生成文件定义可参考"gene.xml格式说明"部分
+2.配置“业务流程事项环节编码信息表.xlsx”表格，参照现有表格模式，按照业务需求修改。
+3.配置gene.xml文件内容
+4.执行gene.bat,生成
+
+
+gene.xml格式说明
+======================================================
+<?xml version="1.0" encoding="UTF-8"?>
+<gene-conf xmlns:ext="http://www.qieren.com/attribute/ext">
+    <!--name:项目名,小写;
+    dir:生成路径;
+    pkg=基础包;
+    defaultGene:默认是否生成所有,每项可单独配置;
+    theme:可选择的模板,default:纯jsp; worktop:工作台相关内容的生成
+    defaultEncoding:生成文件的编码全局配置,默认为:utf-8,具体生成的文件可单独配置
+    -->
+    <project name="offoutresignation"
+             dir="D:\xuexi\testtool"
+             theme="worktop"
+             pkg="com.jade.hr.biz.official.offoutresignation"
+             defaultGene="true"
+             defaultEncoding="UTF-8">
+        <!--default模板默认支持hbm,bo,form,action,facade,service,page-list,page-view,page-insert,page-update,spring,struts,validation,i18n-->
+        <!--worktop模板默认支持page-list,spring;其他所需要生成的文件都是自定义模板-->
+        <!--gene,是否需要生成,非必填,如果为空,则取project 中的defaultGene-->
+        <!--如果不在默认支持的模板里,则以下属性必填-->
+        <!--template,类文件路径(在tmp/<theme>/下),如:conf/hbm/hbm.vm-->
+        <!--single,是否是单个,如果是，则一个项目只会生成一个，如：spring,struts等-->
+        <!--out,生成文件,可用参数${project}(project name值),${pkgDir} (project pkg对应的路径),${Bo}(首字母大写),${bo}(首字母小写),如:web/WEB-INF/spring-${project}.xml, src/${pkgDir}/facade/${Bo}Facade.java, web/${bo}/${bo}_insert.jsp-->
+        <!--encoding,输出文件编码, 默认为utf-8-->
+        
+        <!--创建待办事项台action-->
+        <Action gene="true" template="src/action.vm" single="false" out="src/${pkgDir}/web/action/${Bo}Action.java"/>
+        <!--TaskItemServiceImpl,待办事项查询服务类-->
+        <TaskItemServiceImpl gene="true" template="src/taskItemServiceImpl.vm" single="false" out="src/${pkgDir}/service/flow/${Bo}TaskItemServiceImpl.java"/>
+        <!--TaskItemQueryHelper,待办事项查询类-->
+        <TaskItemQueryHelper gene="true" template="src/taskItemQueryHelper.vm" single="false" out="src/${pkgDir}/queryhelper/${Bo}TaskItemQueryHelper.java"/>
+        <!--CreateServiceImpl,创建待办事项实现类-->
+        <CreateServiceImpl gene="true" template="src/createServiceImpl.vm" single="false" out="src/${pkgDir}/service/flow/${Bo}TaskCreateServiceImpl.java"/>
+        <!--DeleteServiceImpl,删除待办事项实现类-->
+        <DeleteServiceImpl gene="true" template="src/deleteServiceImpl.vm" single="false" out="src/${pkgDir}/service/flow/${Bo}TaskDeleteServiceImpl.java"/>
+        <!--NextTaskServiceImpl,同意，退回，上报待办事项实现类-->
+        <NextTaskServiceImpl gene="true" template="src/nextTaskServiceImpl.vm" single="false" out="src/${pkgDir}/service/flow/${Bo}NextTaskServiceImpl.java"/>
+        <!--RevokeTaskServiceImpl,撤回待办事项实现类-->
+        <RevokeTaskServiceImpl gene="true" template="src/revokeTaskServiceImpl.vm" single="false" out="src/${pkgDir}/service/flow/${Bo}RevokeTaskServiceImpl.java"/>
+        <!--StopTaskServiceImpl,终止，不同意待办事项实现类-->
+        <StopTaskServiceImpl gene="true" template="src/stopTaskServiceImpl.vm" single="false" out="src/${pkgDir}/service/flow/${Bo}StopTaskServiceImpl.java"/>
+        
+        <!--工作台页面-->
+        <page-list gene="true" out="src/web/hrworktop/worktop_viewport.jsp"/>
+        <!--待办工作台页面-->
+        <page-list gene="true" template="web/daibanlist.vm" out="src/web/hrworktop/worktop_daiban.jsp"/>
+        <!--已办工作台页面-->
+        <page-list gene="true" template="web/yibanlist.vm" out="src/web/hrworktop/worktop_yiban.jsp"/>
+        
+        <!--工作台所需的tbar,grid,form文件-->
+        <js gene="true" template="web/js/form.vm" single="false" out="web/${bo}/js/${bo}Form.js"/>
+        <js gene="true" template="web/js/grid.vm" single="false" out="web/${bo}/js/${bo}Grid.js"/>
+        <js gene="true" template="web/js/tbar.vm" single="false" out="web/${bo}/js/${bo}Tbar.js"/>
+        
+        <!--生成tbar文件中相关按钮的实现,生成此模板，则CreateServiceImpl，DeleteServiceImpl，
+        NextTaskServiceImpl，RevokeTaskServiceImpl，StopTaskServiceImpl，
+        TaskItemServiceImpl，TaskItemQueryHelper也必须同时生成-->
+        <TaskItemSpring gene="true" template="web/WEB-INF/spring.vm" single="false" out="src/web/WEB-INF/spring-hrinfo-${project}.xml"/>
+        <!--DefaultTaskItemSpring生成tbar文件中相关按钮的默认实现配置，可以和TaskItemSpring同时生成 选择自己所需的配置-->
+        <DefaultTaskItemSpring gene="true" template="web/WEB-INF/defaultspring.vm" single="false" out="src/web/WEB-INF/spring-${project}.xml"/>
+        <!--创建待办事项台.do-->
+        <Struts gene="true" template="web/WEB-INF/struts.vm" single="false" out="src/web/WEB-INF/struts-hrinfo-${project}.xml"/>
+ 
+    </project>
+    <db dbDriver="oracle.jdbc.driver.OracleDriver"
+        dbUrl="jdbc:oracle:thin:@192.168.1.101:1521:testsrv"
+        userName="JSHRSSB_WARS_DEV"
+        password="JSHRSSB_WARS_DEV"><!--数据库驱动类名,数据库连接,登录用户,登录密码-->
+        <include tables="jhc_pb_person_info"/><!--所要生成的业务相关表-->
+    </db>
+</gene-conf>

@@ -1,0 +1,36 @@
+/**
+${head}
+**/
+package ${pkg}.dto;
+
+import java.io.Serializable;
+
+public class ${bo}DTO implements Serializable {
+	private static final long serialVersionUID = 2515516587055227706L;
+
+#foreach( $column in $allColumns )
+    /**
+     *${column.displayName}
+     **/
+	private $column.typeClass $column.property;
+#end
+
+	public ${bo}DTO() {}
+
+    public ${bo}DTO(#foreach( $id in $ids )$id.typeClass $id.property#if($velocityCount != $ids.size()), #end#end) {
+#foreach( $id in $ids )
+        this.$id.property = $id.property;
+#end
+    }
+
+#foreach( $column in $allColumns )
+	public void set${Util.upperFirst($column.property)}($column.typeClass $column.property){
+		this.$column.property = $column.property;
+	}
+
+	public $column.typeClass get${Util.upperFirst($column.property)}(){
+		return this.$column.property;
+	}
+
+#end
+}

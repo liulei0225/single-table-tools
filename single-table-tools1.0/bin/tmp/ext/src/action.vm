@@ -1,0 +1,303 @@
+/**
+${head}
+**/
+package ${pkg}.web.action;
+
+import ${Config.project.pkg}.dto.${bo}DTO;
+import ${Config.project.pkg}.facade.${bo}Facade;
+import ${Config.project.pkg}.web.form.${bo}Form;
+import com.jade.platform.tech.core.exception.ServiceException;
+import com.jade.platform.tech.core.web.action.BaseAction;
+import com.jade.platform.tech.core.web.TableTagBean;
+import com.jade.platform.tech.tool.util.SpringBeanUtil;
+import com.jade.platform.tech.tool.util.ObjectUtil;
+import com.jade.platform.tech.tool.util.StringUtil;
+import jade.component.dictionary.utils.DicParameter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.alibaba.fastjson.JSON;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.struts.action.ActionForm;
+import org.apache.struts.action.ActionForward;
+import org.apache.struts.action.ActionMapping;
+
+public class ${bo}Action extends BaseAction {
+	private ${bo}Facade ${boLF}Facade = (${bo}Facade) SpringBeanUtil.getBean("${boLF}Facade");
+
+	/**
+	 * list page ${bo}
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward list(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        return mapping.findForward("success");
+	}
+
+    /**
+     * query for json ${bo}
+     *
+     * @param mapping
+     * @param form
+     * @param request
+     * @param response
+     * @return
+     * @throws Exception
+     */
+    public ActionForward query(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        TableTagBean ttb = TableTagBean.getFromExt(request);
+        try {
+            Map<String, Object> json = new HashMap<String, Object>();
+            json.put("rs", ${boLF}Facade.find(ttb));
+            json.put("cs", ttb.getTotal());
+            response.getWriter().print(JSON.toJSONStringWithDateFormat(json, "yyyy-MM-dd"));
+        } catch (Exception se) {
+            this.handleException(request, se, null);
+            return null;
+        }
+
+        return null;
+    }
+
+	/**
+	 * goto addition page
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward goCreate(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		//TODO add your program if you need
+
+		return mapping.findForward("success");
+	}
+
+	/**
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward create(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		if (this.isCancelled(request)) {
+			return mapping.findForward("cancel");
+		}
+
+		${bo}Form ${boLF}Form = (${bo}Form) form;
+		${bo}DTO ${boLF}DTO = new ${bo}DTO();
+
+		try {
+			BeanUtils.copyProperties(${boLF}DTO, ${boLF}Form);
+
+            ${boLF}Facade.create(${boLF}DTO);
+#foreach($id in $ids)
+            request.setAttribute("${id.property}", ${boLF}DTO.get${Util.upperFirst(${id.property})}());
+#end
+            request.setAttribute("insert_msg", "保存成功!");
+		} catch (Exception se) {
+			handleException(request, se, "save ${boLF}DTO failed");
+			return mapping.getInputForward();
+		}
+
+		return mapping.findForward("success");
+	}
+
+	/**
+	 * get single object
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward show(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+#foreach($id in $ids)
+        String ${id.property} = request.getParameter("${id.property}");
+        if (StringUtil.isBlank(${id.property})) {
+            ${id.property} = ObjectUtil.convert(request.getAttribute("${id.property}"), String.class);
+        }
+#end
+
+		try {
+#foreach($id in $ids)
+            if (StringUtils.isBlank(${id.property})) {
+				throw new ServiceException("error.pk.invalid", "${bo} ${id.property} is null");
+			}
+#end
+#if($ids.size() == 1)
+            ${bo}DTO ${boLF}DTO = ${boLF}Facade.get(ObjectUtil.convert(${ids.get(0).property}, ${ids.get(0).typeClass}.class));
+#else
+            ${bo}DTO ${boLF}DTO = ${boLF}Facade.get(new ${bo}(#foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end));
+#end
+			if (${boLF}DTO == null) {
+				throw new ServiceException("error.object.notfound", "${boLF} not found by #foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end");
+			}
+			${bo}Form ${boLF}Form = new ${bo}Form();
+			BeanUtils.copyProperties(${boLF}Form, ${boLF}DTO);
+			request.setAttribute("${boLF}Form", ${boLF}Form);
+#foreach($id in $ids)
+            request.setAttribute("${id.property}", ${id.property});
+#end
+		} catch (Exception se) {
+			this.handleException(request, se, #foreach( $id in $ids )#if($velocityCount > 1) + #end"$id.property=" + $id.property#end);
+			return mapping.getInputForward();
+		}
+		return mapping.findForward("success");
+	}
+
+	/**
+	 * goto ${bo} edit page
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward goUpdate(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		if(this.isCancelled(request)) {
+			return mapping.findForward("cancel");
+		}
+
+#foreach($id in $ids)
+        String ${id.property} = request.getParameter("${id.property}");
+#end
+
+		try {
+#foreach($id in $ids)
+            if (StringUtils.isBlank(${id.property})) {
+				throw new ServiceException("error.pk.invalid", "${boLF} ${id.property} is null");
+			}
+#end
+#if($ids.size() == 1)
+            ${bo}DTO ${boLF}DTO = ${boLF}Facade.get(ObjectUtil.convert(${ids.get(0).property}, ${ids.get(0).typeClass}.class));
+#else
+            ${bo}DTO ${boLF}DTO = ${boLF}Facade.get(new ${bo}(#foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end));
+#end
+			if (${boLF}DTO == null) {
+				throw new ServiceException("error.object.notfound", "${boLF} not found by #foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end");
+			}
+			${bo}Form ${boLF}Form = (${bo}Form) form;//new ${bo}Form();
+			BeanUtils.copyProperties(${boLF}Form, ${boLF}DTO);
+			request.setAttribute("${boLF}Form", ${boLF}Form);
+#foreach($id in $ids)
+            request.setAttribute("${id.property}", ${id.property});
+#end
+		} catch (Exception se) {
+			this.handleException(request, se, #foreach( $id in $ids )#if($velocityCount > 1) + #end"$id.property=" + $id.property#end);
+			return mapping.getInputForward();
+		}
+		return goUpdateView(mapping, form, request, response);
+	}
+
+
+    public ActionForward goUpdateView(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        //add jsp init values
+        ${bo}Form ${boLF}Form = (${bo}Form) form;
+#foreach($column in $allColumns)
+#if(${column.inputType} == 'dicTree')
+        ${boLF}Form.setHomeStr(DicParameter.getDicItemViewNameByDicTypeOidAndDicItemCode("${column.extProp.get("dicType")}", ${boLF}Form.get${Util.upperFirst(${column.property})}()));
+#end
+#end
+        return mapping.findForward("success");
+    }
+
+	/**
+	 * update ${bo}
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward update(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		if(this.isCancelled(request)) {
+			return mapping.findForward("cancel");
+		}
+		
+		${bo}Form ${boLF}Form = (${bo}Form) form;
+		try {
+			${bo}DTO ${boLF}DTO = new ${bo}DTO();
+			BeanUtils.copyProperties(${boLF}DTO, ${boLF}Form);
+			
+			${boLF}Facade.update(${boLF}DTO);
+		} catch (Exception se) {
+			this.handleException(request, se, ${boLF}Form);
+			return mapping.getInputForward();
+		}
+
+		return mapping.findForward("success");
+	}
+
+	/**
+	 * delete ${bo} obj
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward deletes(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String ${boLF}s = request.getParameter("${boLF}s");
+
+        if(StringUtils.isNotBlank(${boLF}s)){
+            try {
+#if($ids.size() == 1)
+                ${boLF}Facade.deletes(new ArrayList(ObjectUtil.converts(${boLF}s.split(","), ${ids.get(0).typeClass}.class)));
+#else
+                List<${bo}> list = new ArrayList();
+                for(String ${boLF} : ${boLF}.split(","))){
+                    list.add(new ${bo}(#foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end));
+                }
+                ${boLF}Facade.deletes(list);
+#end
+            } catch (Exception se) {
+                this.handleException(request, se, ${boLF}s);
+                response.getWriter().write("{success:'fail', msg:'删除失败["+se.getMessage()+"]!'}");
+                return null;
+            }
+        }
+        response.getWriter().write("{success:'ok', msg:'删除成功!'}");
+        return null;
+	}
+
+    public ActionForward delete(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    #foreach($id in $ids)
+           String ${id.property} = request.getParameter("${id.property}");
+    #end
+        try {
+    #if($ids.size() == 1)
+           ${boLF}Facade.delete(ObjectUtil.convert(${ids.get(0).property}, ${ids.get(0).typeClass}.class));
+    #else
+           ${boLF}Facade.delete(new ${bo}DTO(#foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end));
+    #end
+        } catch (Exception se) {
+            this.handleException(request, se, #foreach( $id in $ids )#if($velocityCount > 1) + #end"$id.property=" + $id.property#end);
+            return mapping.getInputForward();
+        }
+        return mapping.findForward("success");
+    }
+
+}

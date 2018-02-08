@@ -1,0 +1,25 @@
+﻿
+<!-- 生成表对象的相关配置 -->
+<!-- 不设置系统将按默认配置生成-->
+#foreach($table in $tables)
+<!--${table.displayName}-->
+<table tableName="${table.tableName}" boName="${table.boName}" displayName="${table.displayName}" columnSize="${table.columns.size()}" fk=""><!--表名, 对象名, 生成列数(lable与input为一列),外键名-->
+ <!--列名, 对象属性名, 字段名, 输入控件(date,float,int,text,textarea)//TODO 还应该加parameter, dicSelect, dicTree
+        , 是否可以空, 占几列, 属性类别(如:java.util.String)
+        , 生成级别(0,由页面输入;1,新增时系统生成,2,修改时系统生成,3,自动生成(如:id))
+        , 该列当用几列(不能小于table 的columnSize), 是否做为查询条件, 是否在查询列表中显示
+        , 输入控件为parameter时的参数类别, 字典类别, parameter或dicSelect的默认值
+
+        , 显示顺序-->
+	#foreach($column in ${table.columns})
+	<column columnName="${column.columnName}" property="${column.property}" displayName="${column.displayName}" inputType="${column.inputType}"
+		nullAble="" columnSize="" typeClass="${column.typeClass}"
+		geneType=""
+		colSpan="" queryCond="" listShow=""
+		paraType="" ext:dicType="" order=""/>
+	#end
+</table>
+#end
+
+
+

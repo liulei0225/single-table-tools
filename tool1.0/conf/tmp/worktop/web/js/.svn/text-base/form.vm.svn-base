@@ -1,0 +1,68 @@
+/**
+ *申报待办-工作台form
+ * 
+ */
+var WorkBenchForm = (function($, window, document){
+	var html_D = [
+	      		"<div class='search'>",
+	      		'<form>',
+	      		"<dl class='search-horizontal' ><dt>创建起始时间：</dt> <dd><label><input type='text'  name='createdDateStart'  onfocus=WdatePicker({dateFmt:'yyyy-MM-dd'}) /></label></dd></dl>",
+	      		"<dl class='search-horizontal' ><dt>创建截止时间：</dt><dd><label><input type='text'  name='createdDateEnd'  onfocus=WdatePicker({dateFmt:'yyyy-MM-dd'}) /></label></dd></dl>",
+	      		"<dl class='search-horizontal' ><dt></dt><dd><button class='btn_search'>查询</button></dd></dl>",
+	      		"<div style='clear: both'></div></div>",
+	      		'</form>'
+	      	].join('');
+  	var html_Y = [
+  	    		"<div class='search'>",
+  	    		'<form>',
+  	    		"<dl class='search-horizontal' ><dt>创建起始时间：</dt> <dd><label><input type='text'  name='createdDateStart' id='createdDateStart' onfocus=WdatePicker({dateFmt:'yyyy-MM-dd'})/></label></dd></dl>",
+  	    		"<dl class='search-horizontal' ><dt>创建截止时间：</dt><dd><label><input type='text'  name='createdDateEnd'  onfocus=WdatePicker({dateFmt:'yyyy-MM-dd'}) /></label></dd></dl>",
+  	    		"<dl class='search-horizontal' ><dt></dt><dd><button class='btn_search'>查询</button></dd></dl>",
+  	    		"<dl class='search-horizontal' ><dt>是否办结：</dt><dd><label><select id='isEnd'  name='isEnd'> <option value='all'>全部</option><option value='N'>未办结</option><option value='Y'>已办结</option></select></label></dd></dl>",
+  	    		"<div style='clear: both'></div></div>",
+  	    		'</form>'
+  	    	].join('');
+	
+	return function(settings){
+		//加入基本方法，类似继承
+		TplQueryForm.extend(this, settings);
+		
+		//wrap 	包裹本form组件的div节点 	（一般是用来指定生成位置的）
+		//ct 	生成的html节点			（html中生成的<div class='search'>）
+		//el	操作的主dom节点			（form）
+		// 以上节点可按使用情况提供
+		if(this.settings.dbflag=="1"){
+			this.ct = $(html_D).appendTo($(this.wrap || 'body'));//初始化位置由实现者控制
+		}else if(this.settings.dbflag=="2"){
+			this.ct = $(html_Y).appendTo($(this.wrap || 'body'));//初始化位置由实现者控制
+		}
+		
+		var now=new Date();
+		var y=now.getFullYear();    
+		var m=now.getMonth();       
+		var d=now.getDate();
+		if(m<5){
+			y=y-1;
+			m=m-5+12;
+		}
+		if(m>5){
+			m=m-5;
+		}
+		if(m<9){
+			m='0'+m;
+		}
+		if(d<10){
+			d='0'+d;
+		}
+	    $('#createdDateStart').val(y+'-'+m+'-'+d);
+	
+		this.el = this.ct.find('form');
+		var that = this;
+		
+		this.el.submit(function(){ return false; });
+		this.el.find('button.btn_search').click(function(){
+			that.worktop.grid.store.baseParams.isContainCell = undefined;
+			that.goQuery();
+		});
+	};
+ })(jQuery, window, document);

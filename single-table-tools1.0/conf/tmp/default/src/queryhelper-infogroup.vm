@@ -1,0 +1,40 @@
+/**
+${head}
+ */
+ 
+ package ${pkg}.queryhelper;
+
+import java.util.List;
+
+import ${pkg}.bo.${bo};
+import ${pkg}.dto.${bo}DTO;
+import com.jade.platform.core.dao.DaoUtil;
+import com.jade.platform.core.exception.ServiceException;
+import com.jade.platform.core.util.BeanHelper;
+import com.jade.platform.core.util.StringUtil;
+
+/**
+ * @desc ${bo} 信息查询工具类
+ */
+public class PbOfficialInfoQueryHelper {
+
+	/*
+	 * 通过officialOid获取
+	 */
+	public static ${bo}DTO get${bo}(Long officialOid) throws ServiceException {
+		return BeanHelper.copyProperties(DaoUtil.get(${bo}.class, officialOid), ${bo}DTO.class);
+	}
+	
+
+	/*
+	 * 通过personOid获取所有
+	 */
+	public static List<${bo}DTO> listAll${bo}(Long personOid) throws ServiceException {
+		final StringBuffer hBuffer =  new StringBuffer("from ${bo} pb where  1 =1 ");
+		if(StringUtil.isNotNull(personOid)){
+			hBuffer.append(" and  pb.personOid =" +personOid);
+		}
+		return BeanHelper.copyProperties(DaoUtil.find(hBuffer.toString()), ${bo}DTO.class);
+	}
+}
+ 

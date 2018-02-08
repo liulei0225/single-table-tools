@@ -1,0 +1,63 @@
+var ${bo}Grid = function (config) {
+    Ext.apply(this, config);
+
+    /**
+     * 加载数据
+     */
+    this.store = new Ext.data.Store({
+        reader: new Ext.data.JsonReader({
+            totalProperty: 'cs',
+            root: 'rs',
+            id: '#foreach($id in $ids)${id.property}#if($velocityCount != $ids.size())_#end#end'
+        }, [
+#foreach($column in $allColumns)
+            {name:'${column.property}'}#if($velocityCount != $allColumns.size()),#end
+
+#end
+        ]),
+        remoteSort: false
+    });
+
+    /**
+     * 定义表格的选择框
+     */
+    this.ssm = new Ext.grid.CheckboxSelectionModel();
+
+    /**
+     * 定义表格的列
+     */
+    this.ccm = new Ext.grid.ColumnModel([
+        new Ext.grid.RowNumberer(),
+        this.ssm
+#foreach($column in $listShow)
+        ,{header:'${column.displayName}',width:100,dataIndex:'${column.property}',sortable:true}
+#end
+    ]);
+    this.ccm.defaultWidth = 120;
+    this.ccm.defaultSortable = true;
+
+    /**
+     * 定义表格
+     */
+    ${bo}Grid.superclass.constructor.call(this, {
+        region: 'center',
+        ds: this.store,
+        cm: this.ccm,
+        sm: this.ssm,
+        border: true,
+        tbar: new Ext.Toolbar(),
+        stripeRows: true,
+        bbar: new Ext.PagingToolbar({
+            pageSize: MaxPageSize,
+            store: this.store,
+            displayInfo: true,
+            displayMsg: '共有 {2} 条记录.当前显示 {0} - {1}条记录.',
+            emptyMsg: '没有记录!',
+            plugins: [new Ext.ux.PageSizePlugin({pageSortHide: true})]
+        })
+    });
+}
+
+Ext.extend(${bo}Grid, DataGridPanel, {
+
+});

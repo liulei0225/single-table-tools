@@ -1,0 +1,20 @@
+/**
+${head}
+**/
+package ${pkg}.service.flow;
+
+import com.jade.hr.component.task.service.impl.TaskRevokeAbstractService;
+import com.jade.platform.core.exception.ServiceException;
+/**
+ * 撤回
+ *
+ */
+public class ${bo}RevokeTaskServiceImpl extends TaskRevokeAbstractService {
+
+	public void modifySubTaskInfoByRevoke(Long bizTaskOid)
+			throws ServiceException {
+		
+	}
+
+
+}

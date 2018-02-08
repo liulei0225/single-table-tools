@@ -1,0 +1,1 @@
+#set($s='$')<parameters:paramWrite paramType="${column.extProp.get("paraType")}" paramValue="${s}{${beanName}.${column.property}}" />

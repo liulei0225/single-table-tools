@@ -1,0 +1,73 @@
+#set($title=${table.displayName}+' 显示')
+#parse("${tmpDir}web/jsp_head.vm")
+
+<script type="text/javascript" language="javascript">
+	function sc(){
+	    document.getElementById("buttons").style.top = (document.body.scrollTop + document.body.clientHeight - document.getElementById("buttons").offsetHeight)	+ "px";
+    }
+
+    window.onscroll = sc;
+
+    Ext.onReady(function () {
+        var buttons = new Ext.Toolbar([
+            {
+                xtype: 'tbbutton',
+                pressed: true,
+                text: '返回',
+                iconCls: 'recall',
+                handler: function(){
+                    parent.win.win.close();
+                }
+            }
+        ]);
+        buttons.render("buttons");
+        sc();
+    });
+</script>
+</head>
+  
+<body>
+    <logic:messagesPresent>
+		<bean:message key="errors.header" />
+		<ul>
+			<html:messages id="error">
+				<li>
+					<bean:write name="error" />
+				</li>
+			</html:messages>
+		</ul>
+	</logic:messagesPresent>
+   <html:form action="${boLF}GoUpdate.do?method=goUpdate" method="post">
+    <table width="100%" class="list" border="0" cellspacing="0" cellpadding="3">
+        <tr>
+          <th colspan="#set($cs=${table.columnSize}*2)${cs}">
+              ${table.displayName}查看
+#foreach($id in $ids)
+            <html:hidden name="${boLF}Form" property="${id.property}"/>
+#end
+          </th>
+        </tr>
+#set($labelWidth=100/${table.columnSize}/3)
+#set($inputWidth=100/${table.columnSize}*2/3)
+#macro(inputCol $column)
+          <td class="formLabel" style="width: ${labelWidth}%;">${column.displayName}</td>
+          <td#if(${column.colSpan} > 1)#set($cosp = ${column.colSpan}*2+(-1)) colspan="${cosp}"#else style="width: ${inputWidth}%;"#end>
+              #set($beanName="${boLF}Form")#parse("${tmpDir}web/view_tmp/${column.inputType}.vm")&nbsp;
+          </td>
+#end
+#table($table)
+   </table>
+          #*<p>
+		    <html:submit>
+	    	   <bean:message key="button.modify"/>
+	        </html:submit>&nbsp;&nbsp;
+			<html:cancel>
+			    <bean:message key="button.return" />
+			</html:cancel>&nbsp;&nbsp;
+        	<html:button property="delete" onclick="do_delete()" >
+			    <bean:message key="button.delete"/>
+		    </html:button>
+		  </p>*#
+  </html:form>
+    <div id="buttons" style="position: absolute; width: 100%; background: white;" />
+#parse("${tmpDir}web/jsp_foot.vm")

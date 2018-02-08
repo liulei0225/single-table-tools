@@ -1,0 +1,14 @@
+                {
+                    xtype: 'datefield',
+                    id: '${column.property}_ID',
+                    name: '${column.property}',
+                    fieldLabel: '${column.displayName}',
+    #if(!$isQuery && !$column.nullAble)
+                    allowBlank: true,
+    #end
+    #if(!$isQuery)
+                    maxLength: ${column.columnSize},
+    #end
+                    format : 'Y-m-d',//日期格式
+                    anchor: '98%'
+                }

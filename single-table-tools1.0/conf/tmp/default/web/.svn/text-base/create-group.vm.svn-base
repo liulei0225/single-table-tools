@@ -1,0 +1,118 @@
+﻿<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ page import="com.jade.platform.core.constant.Constant"%>
+<%@ page import="com.jade.hr.res.dictionary.DicConstants"%>
+<%@ include file="/include/jsp_headers.jsp"%>
+
+<!--
+ * @function    ${table.displayName}新增页面
+ * @page name   /hrinfo/ver/verPb_${bo}_create.jsp
+${head}
+-->
+
+#set($dicSelect="dicSelect")
+#set($dicTree="dicTree")
+
+
+#set($list=[])
+#set($up = $allColumns.size()+(-1))
+#foreach($n in [0..$up])
+#if(${allColumns.get($n).geneType} == 0)
+#set($flag=$list.add($allColumns.get($n)))
+#end
+#end
+
+#if(${list.size()}%3 != 0)
+	#set($rows = ${list.size()}/3+1) 
+#else 
+	#set($rows = ${list.size()}/3) 
+#end
+#set($row = ${rows}+(-1))
+
+
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>${table.displayName}新增页面</title>
+    <script type="text/javascript" src="hrinfo/ver/unit/comm/${boLF}/js/check_${boLF}_info.js"></script>
+	<script type="text/javascript" src="js/comm/customJs.js"></script>
+</head>
+
+<body>
+
+<div id="showmodal" class="modal-content">
+<form id="familyInfoForm" class="form-inline" action="create${table.boName}.do?method=create" method="post" onsubmit="return false">
+
+    <div class="modal-header">
+        <button type="button" class="close close-popdown" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">${table.displayName}&gt;新增</h4>
+    </div>
+
+	<div class="modal-body">
+        	<input type="hidden" id="personOid" name="personOid" value="${personOid}" />
+            <input type="hidden" id="url_id" value="${urlId}" />
+        	<div class="modal-wrong" style="display: none">
+                <ol class="titwrong"><embed src="img/index/jg.svg" width="20" height="20" top="0" type="image/svg+xml" class="ico"/> 以下信息有误，请重新输入！</ol>
+                <ol class="wroglist">
+                    <logic:messagesPresent>
+                        <html:messages id="error">
+                            <li><bean:write name="error" /></li>
+                        </html:messages>
+                    </logic:messagesPresent>
+                </ol>
+            </div>
+#foreach($i in [0..$row])
+        	<div class="modal-row03">   <!--三列 -->
+#foreach($j in [1..3])
+#set($index = ${i}*3+${j})
+#if($index < ${list.size()})
+#if(${dicSelect.equals(${list.get($index).inputType})})
+		<dl>
+                	<dt><b class="Required">* </b>${list.get($index).displayName}：</dt>
+                    <dd>
+                        <label>
+                             <dictionary:dicItemSelect id="${list.get($index).property}" name="${list.get($index).property}" styleClass="modal_select" dicTypeCode="<%=DicConstants.${list.get($index).ExtProp.get("dicType")}%>" emptyText="<%=Constant.EMPTY_SELECT %>"/>
+                        </label>
+                    </dd>
+               </dl>
+#elseif(${dicTree.equals(${list.get($index).inputType})})
+		<dl>   
+                    <dt><b>* </b>${list.get($index).displayName}：</dt>
+			<dd>
+						<label><input type="text" name="${list.get($index).property}Str" id="${list.get($index).property}" class="modal_iput" readonly="true" onclick="dictionaryType(this,'<%=DicConstants.${list.get($index).ExtProp.get("dicType")}%>')" /></label>
+						<input type="hidden" name="${list.get($index).property}" />
+			</dd>
+		</dl>
+#elseif("date"==${list.get($index).inputType})
+		<dl>   
+                    <dt><b>* </b>${list.get($index).displayName}：</dt>
+			<dd>
+				<label><input type="text" name="${list.get($index).property}Str" class="modal_iput"  readonly="true" onfocus="WdatePicker({dateFmt:'yyyy-MM'});" /></label>
+			</dd>
+                 </dl>
+
+#else          
+        	<dl>   
+                    <dt><b>* </b>${list.get($index).displayName}：</dt>
+			<dd>
+				<label><input type="${list.get($index).inputType}" name="${list.get($index).property}" class="modal_iput" maxlength="100" /></label>
+			</dd>
+                 </dl>
+#end
+#end
+#end        
+            </div>
+#end
+    </div>
+   
+    <div class="modal-footer">
+    	<button id="saveFamily" type="button" class="btn btn-primary">保　存</button>
+    	<button type="button" class="btn btn-default close-popdown" data-dismiss="modal">取　消</button>
+    </div>
+    
+    <div style="clear: both"></div>
+    
+</form>
+</div>
+</body>
+</html>

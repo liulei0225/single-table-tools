@@ -1,0 +1,31 @@
+/**
+${head}
+**/
+package ${pkg}.service;
+
+import java.util.*;
+
+import ${Config.project.pkg}.dto.${bo}DTO;
+import com.jade.platform.tech.core.exception.ServiceException;
+import com.jade.platform.tech.core.web.TableTagBean;
+
+public interface ${bo}Service {
+	public void create(${bo}DTO ${boLF}DTO) throws ServiceException;
+
+#if($ids.size() == 1)
+	public ${bo}DTO get(${ids.get(0).typeClass} ${boLF}Id) throws ServiceException;
+#else
+	public ${bo}DTO get(${bo} ${boLF}Id) throws ServiceException;
+#end
+    
+	public void update(${bo}DTO ${boLF}DTO) throws ServiceException;
+    
+#if($ids.size() == 1)
+	public void delete(${ids.get(0).typeClass} ${boLF}Id) throws ServiceException;
+#else
+	public void delete(${bo}DTO ${boLF}Id) throws ServiceException;
+#end
+    
+	public List<${bo}DTO> find(TableTagBean ttb) throws ServiceException;
+
+}

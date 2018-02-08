@@ -1,0 +1,104 @@
+var ${bo}Form = function (config) {
+    Ext.QuickTips.init();
+    Ext.apply(this, config);
+
+    // 初始化单位下拉框的默认值
+    ${bo}Form.superclass.constructor.call(this, {
+        region: 'north',
+        labelWidth: 100,
+        labelAlign: 'right',
+        autoHeight: true,
+        frame: true,
+        border: false,
+        animCollapse: true,
+        collapsible: true,
+        layout: 'form',
+        items: [
+            {
+                xtype: 'fieldset',
+                title: '${table.displayName}',
+                border: false,
+                autoHeight: true,
+                layout: 'column',
+                items: [
+#set($isQuery = true)
+#foreach($column in $query)
+                    {
+                        layout: 'form',
+                        #set($columnWidth=100*${column.colSpan}/${table.columnSize}+(-1))columnWidth: .${columnWidth},
+                        border: false,
+                        items: [
+#parse("${tmpDir}web/input_ext_tmp/${column.inputType}.vm")
+                        ]
+                    },
+
+#end
+                    {
+                        layout: 'form',
+                        columnWidth: .90,
+                        items: [
+                            {
+                                xtype: 'button',
+                                text: '查询',
+                                iconCls: 'query',
+                                handler: this.goQuery.createDelegate(this),
+                                width: 100,
+                                scope: this
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        keys: [
+            {
+                key: Ext.EventObject.ENTER,
+                fn: this.goQuery.createDelegate(this),
+                scope: this
+            }
+        ]
+    });
+};
+
+Ext.extend(${bo}Form, Ext.form.FormPanel, {
+    goQuery: function () {
+#foreach($column in $query)
+        var ${column.property} = Ext.getCmp("${column.property}_ID").getValue();
+#if(${column.inputType} == 'date')
+        ${column.property} = Ext.util.Format.date(${column.property},'Y-m-d');
+#end
+#end
+        var queryUrl = this.formUrl;
+        this.view.grid.store.proxy = new Ext.data.HttpProxy({
+            url: queryUrl
+        });
+        this.view.grid.store.reload({
+            params: {
+                start: 0,
+#foreach($column in $query)
+                ${column.property}: ${column.property},
+#end
+                limit: this.view.grid.getBottomToolbar().pageSize
+            },
+            callback: queryCallBack.createDelegate(this.view)
+        });
+    }
+});
+
+function queryCallBack(data, arg, successFlag) {
+    if (!successFlag) {
+        Ext.Msg.show({
+            title: '提示信息',
+            msg: '网络连接异常,是否重新查询?',
+            buttons: Ext.Msg.YESNO,
+            fn: function (btn) {
+                if (btn == 'yes') {
+                    viewport.centerPanel.form.goQuery();
+                } else {
+                }
+            },
+            icon: Ext.MessageBox.QUESTION,
+            scope: this
+        });
+    }
+}

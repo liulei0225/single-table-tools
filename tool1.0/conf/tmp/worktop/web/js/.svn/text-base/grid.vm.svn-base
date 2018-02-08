@@ -1,0 +1,102 @@
+/**
+ *申报待办-工作台表格
+ * 
+ */ 
+var WorkBenchGrid = (function($, window, document) {
+	var html = [
+		"<table class='x-table sortable ellipsis striped hover' ></table>"
+	].join('');
+	
+	var me = function(settings) {
+		$.copyProperties(this, settings);
+		//wrap ct el
+		this.ct = $(html).appendTo($(this.wrap || 'body'));//初始化位置由实现者控制
+		this.el = this.ct;
+		if(settings.dbflag=="1"){
+			//待办工作台显示列表
+			return new Xtable( $.copyProperties({
+//				widget: this,	//外部引用，视情况决定是否要暴露此属性
+				el: this.el,	//指定table节点
+				lengthMenu:[30,50,100],
+				start: settings.start,
+				paginationType: 'input',
+				rowNumber: true,
+				checkbox: true,
+				singleCheck: false,
+				columns: [
+					{header:'当前环节（当前环节状态）', width:180, render: function(val,row){
+						var buff = [];
+						if (row.data.onTaskItemName) {
+							buff.push(row.data.onTaskItemName);
+						}
+						if (row.data.auditStatusName) {
+							buff.push('（');
+							buff.push(row.data.auditStatusName);
+							buff.push('）');
+						}
+						return buff.join('');
+					}},
+					{header:'上一环节（上一环节状态）', width:180, render: function(val,row){
+						var buff = [];
+						if (row.data.onPreTaskItemName) {
+							buff.push(row.data.onPreTaskItemName);
+						}
+						if (row.data.preAuditStatusName) {
+							buff.push('（');
+							buff.push(row.data.preAuditStatusName);
+							buff.push('）');
+						}
+						
+						return buff.join('');
+					}},
+					{header:'创建时间', field:'createdDate', width:130},
+					{header:'最近处理时间', field:'updatedDate', width:130}
+				]
+			}, settings) );
+		}else if(settings.dbflag=="2"){
+			//已办工作台显示列表
+			return new Xtable( $.copyProperties({
+//				widget: this,	//外部引用，视情况决定是否要暴露此属性
+				el: this.el,	//指定table节点
+				lengthMenu:[30,50,100],
+				start: settings.start,
+				paginationType: 'input',
+				rowNumber: true,
+				checkbox: true,
+				singleCheck: false,
+				columns: [
+					{header:'当前环节（当前环节状态）', width:180, render: function(val,row){
+						var buff = [];
+						if (row.data.onTaskItemName) {
+							buff.push(row.data.onTaskItemName);
+						}
+						if (row.data.auditStatusName) {
+							buff.push('（');
+							buff.push(row.data.auditStatusName);
+							buff.push('）');
+						}
+						return buff.join('');
+					}},
+					{header:'上一环节（上一环节状态）', width:180, render: function(val,row){
+						var buff = [];
+						if (row.data.onPreTaskItemName) {
+							buff.push(row.data.onPreTaskItemName);
+						}
+						if (row.data.preAuditStatusName) {
+							buff.push('（');
+							buff.push(row.data.preAuditStatusName);
+							buff.push('）');
+						}
+						
+						return buff.join('');
+					}},
+					{header:'创建时间', field:'createdDate', width:130},
+					{header:'最近处理时间', field:'updatedDate', width:130},
+					{header:'办结时间', field:'completeTime', width:130},
+					{header:'办理结果', field:'processResult', width:100}
+				]
+			}, settings) );
+		}
+	}
+	return me;
+})(jQuery, window, document);

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+${head}
+-->
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+#foreach($table in $tables)
+    <bean id="${Util.lowerFirst(${table.boName})}Facade" parent="txnProxyParent">
+        <property name="target">
+            <bean class="${Config.project.pkg}.facade.${table.boName}Facade">
+                <property name="${Util.lowerFirst(${table.boName})}Service" ref="${Util.lowerFirst(${table.boName})}Service"/>
+            </bean>
+        </property>
+    </bean>
+
+    <bean id="${Util.lowerFirst(${table.boName})}Service" class="${pkg}.service.impl.${table.boName}ServiceImpl"/>
+#end
+
+</beans>

@@ -1,0 +1,118 @@
+/**
+${head}
+**/
+package ${pkg}.service.impl;
+
+import java.util.*;
+
+import com.jade.platform.tech.tool.util.BeanUtil;
+import ${Config.project.pkg}.bo.${bo};
+import ${Config.project.pkg}.dto.${bo}DTO;
+import ${Config.project.pkg}.service.${bo}Service;
+import com.jade.platform.tech.tool.util.StringMap;
+import com.jade.platform.tech.core.exception.ServiceException;
+import com.jade.platform.tech.core.web.TableTagBean;
+import com.jade.platform.tech.core.web.UserContext;
+import com.jade.platform.tech.core.dao.DaoUtil;
+import com.jade.platform.tech.tool.util.DateUtil;
+import com.jade.platform.tech.tool.util.ObjectUtil;
+
+import org.springframework.beans.BeanUtils;
+
+public class ${bo}ServiceImpl implements ${bo}Service {
+	public void create(${bo}DTO ${boLF}DTO) throws ServiceException {
+        ${bo} ${boLF} = new ${bo}();
+        BeanUtil.copyProperties(${boLF}, ${boLF}DTO);
+#foreach($column in $allColumns)
+#if($column.geneType == 1)
+#if($column.typeClass == "java.util.Date")
+        ${boLF}.set${Util.upperFirst(${column.property})}(new Date());
+#elseif($column.typeClass == "java.lang.String")
+        ${boLF}.set${Util.upperFirst(${column.property})}(UserContext.getCurUid());
+#else
+        //TODO ${boLF}.set${Util.upperFirst(${column.property})}();
+#end
+#end
+#end
+        ${boLF}.save();
+	}
+
+#if($ids.size() == 1)
+	public ${bo}DTO get(${ids.get(0).typeClass} ${boLF}Id) throws ServiceException {
+#else
+	public ${bo}DTO get(${bo} ${boLF}Id) throws ServiceException {
+#end
+        ${bo}DTO ${boLF}DTO = new ${bo}DTO();
+        ${bo} ${boLF} = DaoUtil.get(${bo}.class, ${boLF}Id);
+        BeanUtil.copyProperties(${boLF}DTO, ${boLF});
+        return ${boLF}DTO;
+	}
+    
+	public void update(${bo}DTO ${boLF}DTO) throws ServiceException {
+#if($ids.size() == 1)
+        ${bo} orig = DaoUtil.get(${bo}.class, ${boLF}DTO.get${Util.upperFirst(${ids.get(0).property})}());
+#else
+        ${bo} orig = DaoUtil.get(${bo}.class, new ${bo}(#foreach( $id in $ids )${boLF}DTO.get${Util.upperFirst($id.property)}()#if($velocityCount != $ids.size()), #end#end));
+#end
+        BeanUtils.copyProperties(${boLF}DTO, orig, new String[]{#foreach($column in $allColumns)#if($column.geneType != 0)#if($velocityCount>1), #end"${column.property}"#end#end});
+#foreach($column in $allColumns)
+#if($column.geneType == 2)
+#if($column.typeClass == "java.util.Date")
+        orig.set${Util.upperFirst(${column.property})}(new Date());
+#elseif($column.typeClass == "java.lang.String")
+        orig.set${Util.upperFirst(${column.property})}(UserContext.getCurUid());
+#else
+        //TODO ${boLF}.set${Util.upperFirst(${column.property})}();
+#end
+#end
+#end
+        orig.update();
+	}
+    
+#if($ids.size() == 1)
+	public void delete(${ids.get(0).typeClass} ${boLF}Id) throws ServiceException {
+        ${bo} ${boLF} = DaoUtil.get(${bo}.class, ${boLF}Id);
+#else
+	public void delete(${bo}DTO ${boLF}Id) throws ServiceException {
+        ${bo} ${boLF} = DaoUtil.get(${bo}.class, new ${bo}(#foreach( $id in $ids )${boLF}Id.get${Util.upperFirst($id.property)}()#if($velocityCount != $ids.size()), #end#end));
+#end
+        if (${boLF} != null) {
+            ${boLF}.delete();
+        }
+	}
+    
+	public List<${bo}DTO> find(TableTagBean ttb) throws ServiceException {
+        StringBuilder hql = new StringBuilder();
+        HashMap<String, Object> hqlParams = new HashMap<String, Object>();
+        buildHQL(ttb.getCondition(), hql, hqlParams);
+        String order = ttb.getOrderBy();
+        if (order != null) {
+            if (ttb.getAsc()) {
+                hql.append(" order by " + order + " asc");
+            } else {
+                hql.append(" order by " + order + " desc");
+            }
+        }
+        List<${bo}> list = DaoUtil.listByCondition(hql.toString(), hqlParams, ttb.getPage() * ttb.getPageSize(), ttb.getPageSize());
+        List<${bo}DTO> result = Collections.emptyList();
+        if (list != null && !list.isEmpty()) {
+            result = new ArrayList<${bo}DTO>(list.size());
+            ${bo}DTO ${boLF}DTO;
+            for (${bo} ${boLF} : list) {
+                ${boLF}DTO = new ${bo}DTO();
+                BeanUtil.copyProperties(${boLF}DTO, ${boLF});
+                result.add(${boLF}DTO);
+            }
+        }
+        ttb.setList(result);
+        ttb.setTotal(DaoUtil.countByCondition("select count(*) "+hql, hqlParams));
+        return result;
+	}
+
+    private void buildHQL(StringMap params, StringBuilder hql, HashMap<String, Object> hqlParams) throws ServiceException {
+        hql.append("from ${bo} where 1=1");
+#foreach($column in $query)
+#parse("${tmpDir}src/cond_tmp/${column.inputType}.vm")
+#end
+   }
+}

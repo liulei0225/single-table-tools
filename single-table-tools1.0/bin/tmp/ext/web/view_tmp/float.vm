@@ -1,0 +1,1 @@
+<bean:write name="${beanName}" property="${column.property}"/>

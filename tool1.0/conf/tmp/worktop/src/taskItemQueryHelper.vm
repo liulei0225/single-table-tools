@@ -1,0 +1,245 @@
+/**
+${head}
+**/
+package ${pkg}.queryhelper;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.StringUtils;
+
+import com.jade.component.taglib.TableTagBean;
+import com.jade.platform.core.constant.Constant;
+import com.jade.platform.core.dao.DaoUtil;
+import com.jade.platform.core.exception.DataAccessFailureException;
+import com.jade.platform.core.exception.ServiceException;
+import com.jade.platform.core.util.DataConverUtils;
+import com.jade.platform.core.util.DateUtil;
+import com.jade.platform.core.util.StringMap;
+
+
+/**
+ * 默认待办/已办公共查询
+ */
+public class ${bo}TaskItemQueryHelper {
+	/**
+	 * 获取总页数
+	 * 
+	 * @param ttb
+	 * @return
+	 * @throws ServiceException
+	 */
+	public static int count(TableTagBean ttb) throws ServiceException {
+		StringBuffer countSql = new StringBuffer("select count(distinct jbt.task_oid) ");
+		final HashMap<String, Object> hqlParams = new HashMap<String, Object>();
+		buildSQL(ttb.getCondition(), countSql, hqlParams);
+		// 获取总页数
+		int total = DaoUtil.countWithSQLByCondition(countSql.toString(), hqlParams);
+		return total;
+	}
+
+	public static List<JSONObject> list(TableTagBean ttb) throws DataAccessFailureException,ServiceException {
+		final HashMap<String, Object> hqlParams = new HashMap<String, Object>();
+		StringBuffer hql = new StringBuffer();
+
+		hql.append("select distinct jbt.task_oid,");
+		hql.append("       obti.task_item_code,");//业务当前环节（流程当前所在环节）
+		hql.append("       obti.task_item_name,");//
+		hql.append("       obti.pre_task_item_code,");//业务当前环节的前一环节（流程当前所在环节）
+		hql.append("       obti.pre_task_item_name,");//
+		hql.append("       jbti.task_item_status,");//当前事项环节状态(待办/已办)
+		hql.append("       to_char(jbt.CREATED_DATE, 'yyyy-mm-dd hh24:mi:ss') CREATED_DATE,");//业务创建时间
+		hql.append("       to_char(jbt.UPDATED_DATE, 'yyyy-mm-dd hh24:mi:ss') UPDATED_DATE,");//业务修改时间（业务暂存时间）
+		hql.append("       jbt.PROCESS_RESULT,");//业务办理结果
+		hql.append("       to_char(jbt.start_time, 'yyyy-mm-dd hh24:mi:ss') start_time,");//业务申报时间
+		hql.append("       to_char(jbt.complete_time, 'yyyy-mm-dd hh24:mi:ss') complete_time,");//业务办结时间
+		hql.append("       jbt.item_code,");//业务事项代码
+		hql.append("       jbt.BIZ_STATUS_CODE,");//业务岗状态代码
+		hql.append("       jbt.BIZ_STATUS_NAME,");//业务岗状态名称
+		hql.append("       jbt.PRE_BIZ_STATUS_CODE,");//业务岗前一状态代码
+		hql.append("       jbt.PRE_BIZ_STATUS_NAME,");//业务岗前一状态名称
+		hql.append("       jbt.AUDIT_STATUS_CODE,");//审核岗状态代码
+		hql.append("       jbt.AUDIT_STATUS_NAME,");//审核岗状态名称
+		hql.append("       jbt.PRE_AUDIT_STATUS_CODE,");//审核岗前一状态代码
+		hql.append("       jbt.PRE_AUDIT_STATUS_NAME,");//审核岗前一状态名称
+		hql.append("       jbt.PROCESS_DEPT_CODE");//在办部门代码
+		hql.append("  ,    jbt.PROCESS_DEPT_NAME ");//在办部门名称
+		hql.append("  ,   jbti.task_item_code as taskItemCode");//数据产生的当前环节
+		hql.append("  ,   jbti.pre_task_item_code as preTaskItemCode");//数据数据产生的上一环节
+		
+		buildSQL(ttb.getCondition(), hql, hqlParams);
+
+		hql.append(" order by UPDATED_DATE desc");
+
+		List<Object[]> list = DaoUtil.listWithSQLByCondition(hql.toString(), hqlParams, ttb.getPage(), ttb.getPageSize());
+		return build(list);
+	}
+
+	private static void buildSQL(StringMap params, StringBuffer hql, HashMap<String, Object> hqlParams) throws ServiceException {
+		String itemCode = params.get("itemCode");// 业务类型
+//		String taskItemCode = params.get("taskItemCode");// 业务环节
+		String taskItemStatus = params.get("taskItemStatus");// 待办/已办
+		String startTimeStart = params.get("startTimeStart");// 业务申报时间（起）
+		String startTimeEnd = params.get("startTimeEnd");// 业务申报时间（止）
+		
+		
+		String createdDateStart = params.get("createdDateStart");//业务创建时间(起)
+		String createdDateEnd = params.get("createdDateEnd");//业务创建时间(止)
+		
+		String taskOid = params.get("taskOid");// 业务OID
+		
+		String menuCode = params.get("menuCode"); //菜单编码
+		
+		String isEnd =params.get("isEnd");//业务是否办结
+		
+		hql.append("  from JHC_BT_TASK          jbt,");
+		hql.append("     JHC_BT_TASK_ITEM     jbti,");
+		hql.append("     JHC_BT_TASK_ITEM     obti");//流程当前环节
+		hql.append("  where jbt.task_oid = jbti.task_oid ");
+		hql.append("  and jbti.task_item_oid in ");
+		hql.append("      (select max(bti.task_item_oid) ");
+		hql.append("         from jhc_bt_task_item bti ");
+		hql.append("        where bti.task_oid = jbt.task_oid ");
+		hql.append("        group by bti.task_item_code) ");
+		
+		hql.append("  and obti.task_item_oid = ");
+		hql.append("      (select max(bti2.task_item_oid) ");
+		hql.append("         from jhc_bt_task_item bti2 ");
+		hql.append("        where bti2.task_oid = jbt.task_oid) ");
+
+
+		// 待办中存在的业务 查询已办时不显示
+		if (StringUtils.isNotEmpty(taskItemStatus) && "2".equals(taskItemStatus)) {
+			hql.append("  and jbti.task_oid  not in (select j.task_oid from JHC_BT_TASK_ITEM j where j.TASK_ITEM_CODE = jbti.TASK_ITEM_CODE and j.TASK_ITEM_STATUS='1' )");
+		}
+
+		// 业务类型
+		if (StringUtils.isNotEmpty(itemCode)) {
+			hql.append(" and jbt.item_code =:itemCode");
+			hqlParams.put("itemCode", itemCode);
+		}
+		if (StringUtils.isNotEmpty(taskItemStatus)) {
+			// 节点状态(可用来查待办、已办事项)
+			hql.append(" and jbti.TASK_ITEM_STATUS =:taskItemStatus");
+			hqlParams.put("taskItemStatus", taskItemStatus);
+		}
+		// 业务申报时间（工作台查询参数）
+		if (StringUtils.isNotEmpty(startTimeStart)) {
+			hql.append(" and jbt.START_TIME >=:startTimeStart ");
+			hqlParams.put("startTimeStart", DateUtil.parse(startTimeStart, DateUtil.DATE_PATTERN_DEFAULT));
+		}
+		// 业务申报时间（工作台查询参数）
+		if (StringUtils.isNotEmpty(startTimeEnd)) {
+			hql.append(" and jbt.START_TIME <:startTimeEnd ");
+			hqlParams.put("startTimeEnd", DateUtil.parse(startTimeEnd, DateUtil.DATE_PATTERN_DEFAULT));
+		}
+		// 业务创建时间（工作台查询参数）
+		if (StringUtils.isNotEmpty(createdDateStart)) {
+			hql.append(" and jbt.CREATED_DATE >=:createdDateStart ");
+			hqlParams.put("createdDateStart", DateUtil.parse(createdDateStart, DateUtil.DATE_PATTERN_DEFAULT));
+		}
+		// 业务创建时间（工作台查询参数）
+		if (StringUtils.isNotEmpty(createdDateEnd)) {
+			hql.append(" and jbt.CREATED_DATE <:createdDateEnd ");
+			hqlParams.put("createdDateEnd", DateUtil.parse(createdDateEnd, DateUtil.DATE_PATTERN_DEFAULT));
+		}
+		
+		if (StringUtils.isNotEmpty(menuCode))
+		{
+			hql.append(" and jbti.TASK_ITEM_CODE in ( select jmn.FLOW_NODE_CODE from JHD_MT_NODE jmn where jmn.MENU_CODE ='"+menuCode+"')");
+		}
+		
+		// 业务OID
+		if (StringUtils.isNotEmpty(taskOid)) {
+			hql.append(" and jbt.task_oid =:taskOid");
+			hqlParams.put("taskOid", taskOid);
+		}
+		if (StringUtils.isNotEmpty(isEnd)) {
+			if(Constant.NO.equals(isEnd)){
+				hql.append(" and jbt.complete_time is null ");
+			}
+			else if(Constant.YES.equals(isEnd)) {
+				hql.append(" and jbt.complete_time is not null ");
+			}
+		}
+	}
+
+	/**
+	 * 查询待办事项列表
+	 * 
+	 * @param list
+	 * @return
+	 * @throws DataAccessFailureException
+	 * @throws ServiceException
+	 */
+	private static List<JSONObject> build(List<Object[]> list) throws DataAccessFailureException,ServiceException {
+		List<JSONObject> dtoList = new ArrayList<JSONObject>();
+
+		if (CollectionUtils.isEmpty(list)) {
+			return dtoList;
+		}
+		for (int i = 0; i < list.size(); i++) {
+			Object[] task = list.get(i);
+			
+			Long taskOid = task[0] == null ? null : new Long(task[0].toString());
+			String onTaskItemCode = DataConverUtils.toString(task[1]);// 业务当前环节（流程当前所在环节）
+			String onTaskItemName = DataConverUtils.toString(task[2]);// 业务当前环节名称（流程当前所在环节）
+			String onPreTaskItemCode = DataConverUtils.toString(task[3]);// 业务当前环节的前一环节（流程当前所在环节）
+			String onPreTaskItemName = DataConverUtils.toString(task[4]);// 业务当前环节的前一环节名称（流程当前所在环节）
+			String taskItemStatus = DataConverUtils.toString(task[5]);//当前事项环节状态(待办/已办)
+			String createdDate = DataConverUtils.toString(task[6]);//业务创建时间
+			String updatedDate = DataConverUtils.toString(task[7]);//业务修改时间（业务暂存时间）
+			String processResult = DataConverUtils.toString(task[8]);//业务办理结果
+			String startTime = DataConverUtils.toString(task[9]);//业务申报时间
+			String completeTime = DataConverUtils.toString(task[10]);//业务办结时间
+			String itemCode = DataConverUtils.toString(task[11]);//业务事项代码
+			String bizStatusCode = DataConverUtils.toString(task[12]);//业务岗状态代码
+			String bizStatusName = DataConverUtils.toString(task[13]);//业务岗状态名称
+			String preBizStatusCode = DataConverUtils.toString(task[14]);//业务岗前一状态代码
+			String preBizStatusName = DataConverUtils.toString(task[15]);//业务岗前一状态名称
+			String auditStatusCode = DataConverUtils.toString(task[16]);//审核岗状态代码
+			String auditStatusName = DataConverUtils.toString(task[17]);//审核岗状态名称
+			String preAuditStatusCode = DataConverUtils.toString(task[18]);//审核岗前一状态代码
+			String preAuditStatusName = DataConverUtils.toString(task[19]);//审核岗前一状态名称
+			String processDeptCode = DataConverUtils.toString(task[20]);//
+			String processDeptName = DataConverUtils.toString(task[21]);
+			String taskItemCode  = DataConverUtils.toString(task[22]);//数据产生的当前环节
+			String preTaskItemCode  = DataConverUtils.toString(task[23]);//数据数据产生的上一环节
+			
+			
+			JSONObject obj = new JSONObject();
+			
+			obj.put("taskOid", taskOid);
+			obj.put("onTaskItemCode",onTaskItemCode );
+			obj.put("onTaskItemName",onTaskItemName );
+			obj.put("onPreTaskItemCode",onPreTaskItemCode );
+			obj.put("onPreTaskItemName", onPreTaskItemName);
+			obj.put("taskItemStatus",taskItemStatus );
+			obj.put("createdDate",createdDate );
+			obj.put("updatedDate",updatedDate );
+			obj.put("processResult",processResult );
+			obj.put("startTime",startTime);
+			obj.put("completeTime", completeTime);
+			obj.put("itemCode", itemCode);
+			obj.put("bizStatusCode", bizStatusCode);
+			obj.put("bizStatusName",bizStatusName );
+			obj.put("preBizStatusCode", preBizStatusCode);
+			obj.put("preBizStatusName",preBizStatusName );
+			obj.put("auditStatusCode",auditStatusCode );
+			obj.put("auditStatusName",auditStatusName );
+			obj.put("preAuditStatusCode", preAuditStatusCode);
+			obj.put("preAuditStatusName",preAuditStatusName );
+			obj.put("processDeptCode", processDeptCode);
+			obj.put("processDeptName",processDeptName );
+			obj.put("taskItemCode",taskItemCode );
+			obj.put("preTaskItemCode",preTaskItemCode );
+			dtoList.add(obj);
+		}
+		return dtoList;
+	}
+	
+}

@@ -1,0 +1,3 @@
+<html:text property="${column.property}Str" readonly="true" onfocus="setday(this,${column.property}Str)" style="cursor:hand;width:50%"/>
+#set($property="${column.property}Str")
+#valid($column, $property)

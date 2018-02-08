@@ -1,0 +1,18 @@
+/**
+${head}
+**/
+package ${pkg}.service.flow;
+
+import com.jade.hr.component.task.service.impl.TaskCreateAbstractService;
+import com.jade.platform.core.exception.ServiceException;
+/**
+ * 业务创建
+ *
+ */
+public class ${bo}TaskCreateServiceImpl extends TaskCreateAbstractService {
+
+	public void createSubTaskInfo(Long bizTaskOid) throws ServiceException {
+		
+	}
+
+}                                                                                                           

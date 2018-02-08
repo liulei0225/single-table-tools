@@ -1,0 +1,290 @@
+/**
+${head}
+**/
+package ${pkg}.web.action;
+
+import ${Config.project.pkg}.bo.${bo};
+import ${Config.project.pkg}.facade.${bo}Facade;
+import ${Config.project.pkg}.web.form.${bo}Form;
+import com.jade.platform.tech.core.exception.ServiceException;
+import com.jade.platform.tech.core.web.action.BaseAction;
+import com.jade.platform.tech.core.web.TableTagBean;
+import com.jade.platform.tech.tool.util.SpringBeanUtil;
+import com.jade.platform.tech.tool.util.ObjectUtil;
+import com.jade.platform.tech.tool.util.StringUtil;
+import jade.component.dictionary.utils.DicParameter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import com.alibaba.fastjson.JSON;
+import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.struts.action.ActionForm;
+import org.apache.struts.action.ActionForward;
+import org.apache.struts.action.ActionMapping;
+
+public class ${bo}Action extends BaseAction {
+	private ${bo}Facade ${boLF}Facade = (${bo}Facade) SpringBeanUtil.getBean("${boLF}Facade");
+
+	/**
+	 * list page ${boLF}
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward list(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        TableTagBean ttb = TableTagBean.getFromRequest(request);
+		if (request.getMethod().equals("POST")) {
+	        Map map = BeanUtils.describe(form);
+	        ttb.getCondition().copyFrom(map, true);
+	    } else {
+	        BeanUtils.populate(form, ttb.getCondition());
+	        request.setAttribute("${boLF}Form", form);
+	    }
+        try {
+	        ${boLF}Facade.find(ttb);
+	        request.setAttribute("ttb", ttb);
+        } catch (Exception se) {
+			this.handleException(request, se, null);
+			return mapping.findForward("fail");
+		}
+        return mapping.findForward("success");
+	}
+
+	/**
+	 * goto addition page
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward goCreate(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		//TODO add your program if you need
+
+		return mapping.findForward("success");
+	}
+
+	/**
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward create(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		if (this.isCancelled(request)) {
+			return mapping.findForward("cancel");
+		}
+
+		${bo}Form ${boLF}Form = (${bo}Form) form;
+		${bo} ${boLF} = new ${bo}();
+
+		try {
+			BeanUtils.copyProperties(${boLF}, ${boLF}Form);
+
+            ${boLF}Facade.create(${boLF});
+#foreach($id in $ids)
+            request.setAttribute("${id.property}", ${boLF}.get${Util.upperFirst(${id.property})}());
+#end
+		} catch (Exception se) {
+			handleException(request, se, "save ${boLF} failed");
+			return mapping.getInputForward();
+		}
+
+		return mapping.findForward("success");
+	}
+
+	/**
+	 * get single object
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward show(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+#foreach($id in $ids)
+        String ${id.property} = request.getParameter("${id.property}");
+        if (StringUtil.isBlank(${id.property})) {
+            ${id.property} = ObjectUtil.convert(request.getAttribute("${id.property}"), String.class);
+        }
+#end
+
+		try {
+#foreach($id in $ids)
+            if (StringUtils.isBlank(${id.property})) {
+				throw new ServiceException("error.pk.invalid", "${boLF} ${id.property} is null");
+			}
+#end
+#if($ids.size() == 1)
+            ${bo} ${boLF} = ${boLF}Facade.get(ObjectUtil.convert(${ids.get(0).property}, ${ids.get(0).typeClass}.class));
+#else
+            ${bo} ${boLF} = ${boLF}Facade.get(new ${bo}(#foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end));
+#end
+			if (${boLF} == null) {
+				throw new ServiceException("error.object.notfound", "${boLF} not found by #foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end");
+			}
+			${bo}Form ${boLF}Form = new ${bo}Form();
+			BeanUtils.copyProperties(${boLF}Form, ${boLF});
+			request.setAttribute("${boLF}Form", ${boLF}Form);
+#foreach($id in $ids)
+            request.setAttribute("${id.property}", ${id.property});
+#end
+		} catch (Exception se) {
+			this.handleException(request, se, #foreach( $id in $ids )#if($velocityCount > 1) + #end"$id.property=" + $id.property#end);
+			return mapping.getInputForward();
+		}
+		return mapping.findForward("success");
+	}
+
+	/**
+	 * goto ${boLF} edit page
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward goUpdate(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		if(this.isCancelled(request)) {
+			return mapping.findForward("cancel");
+		}
+
+#foreach($id in $ids)
+        String ${id.property} = request.getParameter("${id.property}");
+#end
+
+		try {
+#foreach($id in $ids)
+            if (StringUtils.isBlank(${id.property})) {
+				throw new ServiceException("error.pk.invalid", "${boLF} ${id.property} is null");
+			}
+#end
+#if($ids.size() == 1)
+            ${bo} ${boLF} = ${boLF}Facade.get(ObjectUtil.convert(${ids.get(0).property}, ${ids.get(0).typeClass}.class));
+#else
+            ${bo} ${boLF} = ${boLF}Facade.get(new ${bo}(#foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end));
+#end
+			if (${boLF} == null) {
+				throw new ServiceException("error.object.notfound", "${boLF} not found by #foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end");
+			}
+			${bo}Form ${boLF}Form = (${bo}Form) form;//new ${bo}Form();
+			BeanUtils.copyProperties(${boLF}Form, ${boLF});
+			request.setAttribute("${boLF}Form", ${boLF}Form);
+#foreach($id in $ids)
+            request.setAttribute("${id.property}", ${id.property});
+#end
+		} catch (Exception se) {
+			this.handleException(request, se, #foreach( $id in $ids )#if($velocityCount > 1) + #end"$id.property=" + $id.property#end);
+			return mapping.getInputForward();
+		}
+		return goUpdateView(mapping, form, request, response);
+	}
+
+
+    public ActionForward goUpdateView(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        //add jsp init values
+        ${bo}Form ${boLF}Form = (${bo}Form) form;
+#foreach($column in $allColumns)
+#if(${column.inputType} == 'dicTree')
+        ${boLF}Form.set${column.property}Str(DicParameter.getDicItemViewNameByDicTypeOidAndDicItemCode("${column.extProp.get("dicType")}", ${boLF}Form.get${Util.upperFirst(${column.property})}()));
+#end
+#end
+        return mapping.findForward("success");
+    }
+
+	/**
+	 * update ${boLF}
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward update(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+		if(this.isCancelled(request)) {
+			return mapping.findForward("cancel");
+		}
+		
+		${bo}Form ${boLF}Form = (${bo}Form) form;
+		try {
+			${bo} ${boLF} = new ${bo}();
+			BeanUtils.copyProperties(${boLF}, ${boLF}Form);
+			
+			${boLF}Facade.update(${boLF});
+		} catch (Exception se) {
+			this.handleException(request, se, ${boLF}Form);
+			return mapping.getInputForward();
+		}
+
+		return mapping.findForward("success");
+	}
+
+	/**
+	 * delete ${boLF} obj
+	 * 
+	 * @param mapping
+	 * @param form
+	 * @param request
+	 * @param response
+	 * @return
+	 * @throws Exception
+	 */
+	public ActionForward deletes(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String ${boLF}s = request.getParameter("${boLF}s");
+
+        if(StringUtils.isNotBlank(${boLF}s)){
+            try {
+#if($ids.size() == 1)
+                ${boLF}Facade.deletes(new ArrayList(ObjectUtil.converts(${boLF}s.split(","), ${ids.get(0).typeClass}.class)));
+#else
+                List<${bo}> list = new ArrayList();
+                for(String ${boLF} : ${boLF}.split(","))){
+                    list.add(new ${bo}(#foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end));
+                }
+                ${boLF}Facade.deletes(list);
+#end
+            } catch (Exception se) {
+                this.handleException(request, se, ${boLF}s);
+                return mapping.getInputForward();
+            }
+        }
+		return mapping.findForward("success");
+	}
+
+    public ActionForward delete(ActionMapping mapping, ActionForm form, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    #foreach($id in $ids)
+           String ${id.property} = request.getParameter("${id.property}");
+    #end
+        try {
+    #if($ids.size() == 1)
+               ${boLF}Facade.delete(ObjectUtil.convert(${ids.get(0).property}, ${ids.get(0).typeClass}.class));
+    #else
+               ${boLF}Facade.delete(new ${bo}(#foreach( $id in $ids )$id.property#if($velocityCount != $ids.size()), #end#end));
+    #end
+        } catch (Exception se) {
+            this.handleException(request, se, #foreach( $id in $ids )#if($velocityCount > 1) + #end"$id.property=" + $id.property#end);
+            return mapping.getInputForward();
+        }
+        return mapping.findForward("success");
+    }
+
+}

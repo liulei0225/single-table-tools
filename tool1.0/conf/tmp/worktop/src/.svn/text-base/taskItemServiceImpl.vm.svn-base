@@ -1,0 +1,41 @@
+/**
+${head}
+**/
+package ${pkg}.service.flow;
+
+import java.util.List;
+
+import net.sf.json.JSONObject;
+
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang.ObjectUtils;
+
+import com.jade.component.dictionary.utils.DicHelper;
+import com.jade.component.taglib.TableTagBean;
+import ${pkg}.queryhelper.${bo}TaskItemQueryHelper;
+import com.jade.hr.component.task.service.TaskItemService;
+import com.jade.hr.res.dictionary.DicConstants;
+import com.jade.platform.core.exception.ServiceException;
+
+/**
+ * 默认待办事项查询服务类（工作台右边查询列表）
+ */
+public class ${bo}TaskItemServiceImpl implements TaskItemService
+{
+	public List<JSONObject> list(TableTagBean ttb) throws ServiceException 
+	{
+		ttb.setTotal(${bo}TaskItemQueryHelper.count(ttb));
+		List<JSONObject> dtoList=${bo}TaskItemQueryHelper.list(ttb);
+		if(CollectionUtils.isNotEmpty(dtoList)){
+			for(JSONObject json:dtoList ){
+			json.put("processResult", DicHelper.viewName(DicConstants.JDRS2003, ObjectUtils.toString(json.get("processResult"), null)));
+			}
+			}
+		return dtoList;
+	}
+
+	public int count(TableTagBean ttb) throws ServiceException 
+	{
+		return ${bo}TaskItemQueryHelper.count(ttb);
+	}
+}

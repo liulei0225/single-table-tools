@@ -1,0 +1,5 @@
+        String ${column.property} = params.getAsStringEmptyNull("${column.property}");
+        if (${column.property} != null){
+           hql.append(" and ${column.property} like :${column.property}");
+           hqlParams.put("${column.property}", "%"+${column.property}.trim()+"%");
+        }
